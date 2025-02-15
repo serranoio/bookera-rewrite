@@ -1,0 +1,139 @@
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func PackageOPF(ebook EBook) string {
+
+creator := ""
+
+if len(ebook.Frontmatter.Copyright.Authors) > 0 {
+	creator = ebook.Frontmatter.Copyright.Authors[0]
+} 
+
+str := fmt.Sprintf(`
+<package xmlns="http://www.idpf.org/2007/opf"
+xmlns:epub="http://www.idpf.org/2007/ops"
+version="3.0"
+xml:lang="en"
+ xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+unique-identifier="pub-id">
+			  	<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+			    <dc:coverage>Content Documents</dc:coverage>
+			    <dc:creator>%s</dc:creator>
+					%s
+					%s
+					%s
+					%s
+					%s
+					%s
+					<meta property="dcterms:modified">%s</meta>
+			    <link rel="dcterms:rights" href="https://www.w3.org/Consortium/Legal/2015/copyright-software-and-document"/>
+			    <link rel="dcterms:rightsHolder" href="https://www.w3.org"/>
+			  </metadata>
+			  <manifest>
+			    <item id="content_001" href="content_001.xhtml" media-type="application/xhtml+xml"/>
+					<item href="styles.css" id="styles.css" media-type="text/css" />
+			    <item id="nav" properties="nav" href="nav.xhtml" media-type="application/xhtml+xml"/>
+			  </manifest>
+			  <spine>
+			    <itemref idref="content_001"/>
+			  </spine>
+			</package>`, creator,
+				writeList("dc:date", []string{"date"}, []string{ebook.Frontmatter.Copyright.Date}),
+				writeList("dc:description", []string{"desdc"}, []string{ebook.Frontmatter.Copyright.Description}),
+				writeList("dc:identifier", []string{"pub-id"}, ebook.Frontmatter.Copyright.Identifiers),
+				writeList("dc:language", []string{"lang"}, []string{ebook.Frontmatter.Copyright.Language}),
+				writeList("dc:title", []string{"title"}, []string{ebook.Frontmatter.Copyright.Title}),
+				writeList("dc:publisher", []string{"publisher"}, ebook.Frontmatter.Copyright.Publishers),
+				time.Now().UTC().Format("2006-01-02T15:04:05Z"))
+
+			return str
+}
+
+func pageName() string {
+	return "content_001.xhtml#"
+
+}
+
+func createSectionTitle(sectionTitle string) string {
+return pageName() + sectionTitle
+}
+
+templ Nav(ebook EBook) {
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en">
+  <head>
+    <title>{ebook.Frontmatter.Copyright.Title}</title>
+  </head>
+  <body>
+    <nav epub:type="toc">
+      <ol>
+        <li><a href="content_001.xhtml">Link to main page</a></li>
+				// for _, sectionTitle := range ebookMiddle.Interior.SectionTitles {
+        	// <li><a href={templ.URL(createSectionTitle(sectionTitle))}>{sectionTitleName(sectionTitle)}</a></li>
+				// }
+      </ol>
+    </nav>
+  </body>
+</html>
+}
+
+func writeList(propertyName string, id []string, listContent []string) string { 
+	str := "";
+	for i, content := range listContent {
+		str  += fmt.Sprintf(`<%s id="%s">%s</%s>`, propertyName, id[i], content, propertyName)
+	}
+
+	return str
+}
+
+// loop thru all of the content here
+templ Content(ebook EBook) {
+	<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en">
+	<head>
+    <title>{ebook.Frontmatter.Copyright.Title}</title>
+	@templ.Raw(`<link href="styles.css" rel="stylesheet" type="text/css"></link>`)
+	</head>
+  <body>
+
+	@templ.Raw(ebook.Body.Content)
+  </body>
+</html>
+}
+
+func Styles(ebook EBook) string {
+	return fmt.Sprintf(`.pagebreak {
+		margin: 1rem 0;
+	}
+
+	.fr-class-highlighted {
+		background-color: rgb(255, 255, 0);
+	}
+
+	.fr-class-code {
+		border-color: rgb(204, 204, 204);
+    border-radius: 2px;
+    background: rgb(245, 245, 245);
+    padding: 10px;
+    font-family: "Courier New", Courier, monospace;
+	}
+
+	.fr-class-transparency {
+		opacity: 0.5;
+	}
+	`)
+}
+
+func ContainerXML(ebook EBook) string {
+
+str := fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8" ?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles>
+    <rootfile full-path="EPUB/package.opf" media-type="application/oebps-package+xml" />
+  </rootfiles>
+</container>`)
+
+return str
+}

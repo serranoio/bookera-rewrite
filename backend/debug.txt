@@ -1,0 +1,4 @@
+ERROR(PKG-003): output/b2c4ec88-e357-4ca9-8dd8-10652097b0bb.epub/./output/b2c4ec88-e357-4ca9-8dd8-10652097b0bb.epub(-1,-1): Unable to read EPUB file header. This is likely a corrupted EPUB file.
+FATAL(PKG-008): output/b2c4ec88-e357-4ca9-8dd8-10652097b0bb.epub/./output/b2c4ec88-e357-4ca9-8dd8-10652097b0bb.epub(-1,-1): Unable to read file "zip file is empty".
+
+Check finished with errors
