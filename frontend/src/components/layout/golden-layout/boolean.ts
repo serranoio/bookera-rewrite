@@ -25,7 +25,7 @@ export class BooleanComponent extends ComponentBase {
   constructor(container: ComponentContainer, component: Component) {
     super(container, false);
 
-    this.id = component.componentId;
+    this.id = component.componentID;
 
     let views = [];
 

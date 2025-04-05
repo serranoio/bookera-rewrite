@@ -33,6 +33,18 @@
       type="module"
       src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.16.0/cdn/shoelace-autoloader.js"
     ></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.0/cdn/components/alert/alert.js"
+    ></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.0/cdn/components/select/select.js"
+    ></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.0/cdn/components/option/option.js"
+    ></script>
 
     <!-- <script>
       if ("serviceWorker" in navigator) {
@@ -48,14 +60,52 @@
         background-color: var(--sl-color-primary-500);
       }
 
+      body {
+        overflow-x: hidden;
+      }
+
       :root {
-        --primary: #ffb87e;
         --primary-25: rgb(255, 184, 126, 0.25);
         --primary-50: rgb(255, 184, 126, 0.5);
         --primary-75: rgb(255, 184, 126, 0.75);
-        --sl-color-primary-500: #ffbf8b;
-        --sl-color-primary-600: #ffb87e;
-        --sl-color-primary-700: #e6a671;
+        --primary-50: #ffdcbf;
+        --primary-100: #ffd4b2;
+        --primary-200: #ffcda5;
+        --primary-300: #ffc698;
+        --primary-400: #ffbf8b;
+        --primary: #ffb87e;
+        --primary-500: var(--primary);
+        --primary-600: #e6a671;
+        --primary-700: #cc9365;
+        --primary-800: #b38158;
+        --primary-900: #996e4c;
+        --primary-950: #805c3f;
+
+        --secondary-50: #e6f2f2;
+        --secondary-100: #cce6e6;
+        --secondary-200: #b3d9d9;
+        --secondary-300: #99cccc;
+        --secondary-400: #80bfbf;
+        --secondary: #4c9999;
+        --secondary-500: var(--secondary);
+        --secondary-600: #458a8a;
+        --secondary-700: #3d7a7a;
+        --secondary-800: #366b6b;
+        --secondary-900: #2e5c5c;
+        --secondary-950: #264d4d;
+
+        --sl-color-primary-50: var(--primary-50);
+        --sl-color-primary-100: var(--primary-100);
+        --sl-color-primary-200: var(--primary-200);
+        --sl-color-primary-300: var(--primary-300);
+        --sl-color-primary-400: var(--primary-400);
+        --sl-color-primary-500: var(--primary-500);
+        --sl-color-primary-600: var(--primary-600);
+        --sl-color-primary-700: var(--primary-700);
+        --sl-color-primary-800: var(--primary-800);
+        --sl-color-primary-900: var(--primary-900);
+        --sl-color-primary-950: var(--primary-950);
+
         --spacingXXSmall: 0.25rem;
         --spacingXSmall: 0.5rem;
         --spacingSmall: calc(1 * var(--spacingXSmall));
@@ -63,6 +113,9 @@
         --spacingMedium: calc(4 * var(--spacingXSmall));
         --spacingLarge: calc(8 * var(--spacingXSmall));
         --spacingXLarge: calc(12 * var(--spacingXSmall));
+
+        --dark-mode-shadow: rgba(255, 255, 255, 0.75);
+        --light-mode-shadow: rgba(0, 0, 0, 0.75);
 
         --text-xs: 0.75rem;
         --text-sm: 0.875rem;
@@ -102,6 +155,23 @@
         --slate-800: #1e293b;
         --slate-900: #0f172a;
         --slate-950: #020617;
+
+        /* Gray */
+        --sl-color-gray-50: var(--slate-50);
+        --sl-color-gray-100: var(--slate-100);
+        --sl-color-gray-200: var(--slate-200);
+        --sl-color-gray-300: var(--slate-300);
+        --sl-color-gray-400: var(--slate-400);
+        --sl-color-gray-500: var(--slate-500);
+        --sl-color-gray-600: var(--slate-600);
+        --sl-color-gray-700: var(--slate-700);
+        --sl-color-gray-800: var(--slate-800);
+        --sl-color-gray-900: var(--slate-900);
+
+        --sl-color-neutral-0: var(--slate-50);
+        --sl-color-neutral-1000: var(--slate-900);
+        --sl-input-color: var(--slate-700);
+
         --purple-500: #a855f7;
         --fuschia-500: #d946ef;
 
@@ -123,8 +193,8 @@
       }
 
       /* .fr-quick-insert {
-        display: none !important;
-      } */
+              display: none !important;
+            } */
 
       .epub-view {
         height: 100% !important;
@@ -171,11 +241,52 @@
       .fr-line-breaker {
         display: none;
       }
+
+      .dragged-element {
+        position: absolute;
+        user-select: none;
+        pointer-events: none;
+        opacity: 0.75;
+      }
+
+      .panel-tab {
+        flex: 1;
+        background-color: var(--slate-200);
+        padding: var(--spacingXXSmall) var(--spacingXSmall);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: var(--text-sm);
+        cursor: pointer;
+        word-wrap: normal;
+        white-space: nowrap;
+      }
+
+      .panel-tab.active {
+        background-color: var(--slate-300);
+      }
+
+      .dragged-panel-tab {
+        height: 1rem;
+        color: green;
+        background-color: red;
+      }
+
+      .hover-container {
+        position: absolute;
+        background-color: var(--light-mode-shadow);
+        opacity: 0.75;
+        transition: all 1s;
+      }
     </style>
 
     <style>
-      .manuscript-section {
+      manuscript-element {
         min-height: 100vh;
+        display: flex;
+      }
+      #panels-section {
+        width: 100%;
         display: flex;
       }
     </style>
@@ -208,5 +319,7 @@
         <!-- <viewer-element></viewer-element> -->
       </manuscript-element>
     </layout-element>
+
+    <!-- <div class="hover-container"></div> -->
   </body>
 </html>

@@ -11,7 +11,7 @@ import {
   companyItems,
   navSize,
   productItems,
-} from "../../lib/model/meta";
+} from "../../lib/model/util";
 import "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.16.0/cdn/components/drawer/drawer.js";
 import "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.17.1/cdn/components/input/input.js";
 import "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.17.1/cdn/components/dropdown/dropdown.js";
@@ -21,17 +21,15 @@ import "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.17.1/cdn/compone
 import "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.17.1/cdn/components/divider/divider.js";
 import { ContextConsumer } from "@lit/context";
 import { studioPageContext } from "../../lib/model/context";
-import {
-  NEW_PANEL_EVENT,
-  UPDATE_GRAPH_EVENT,
-  URL_EVENT_CHANGE,
-} from "../../lib/model/site";
+import { UPDATE_GRAPH_EVENT, URL_EVENT_CHANGE } from "../../lib/model/site";
 import fs, { configureSingle } from "@zenfs/core";
 import { WebAccess } from "@zenfs/dom";
 import localforage from "localforage";
 import { ManuscriptStoreName, Manuscript } from "../../lib/git/manuscript";
 import { getManuscriptFromURL } from "../create/studio/extra-element";
 import { styleMap } from "lit/directives/style-map.js";
+import { SlDrawer } from "@shoelace-style/shoelace";
+import { NEW_PANEL_EVENT } from "../../lib/model/panel";
 
 @customElement("nav-element")
 @install(config)
@@ -40,7 +38,7 @@ export class NavElement extends LitElement {
   sizeAdder = -5;
 
   @query("#mobile-menu")
-  drawer!: SLDrawer;
+  drawer!: SlDrawer;
 
   @property({ type: String })
   url: string = "";
@@ -217,14 +215,15 @@ export class NavElement extends LitElement {
 
     return html`
       <nav
-        class="h-[${navSize}px] transition-all sm:px-4 px-2 py-2.5 ${isStudio
-          ? "fixed z-[10] top-0 left-0 right-0 opacity-[0.9]"
+        class="h-[${navSize}px] transition-all w-[70%] sm:px-2 px-4 py-2.5 ${isStudio
+          ? "fixed z-[10] top-0 left-0 right-[50%] translate-x-[25%] opacity-[0.9]"
           : ""}
-					${this.isNavHidden ? "-translate-y-[100%] " : ""}
+					${!this.isNavHidden ? "-translate-y-[100%] " : ""}
 					
 					"
         style=${styleMap({
           backdropFilter: "blur(1px)",
+          // display: "",
         })}
       >
         <button

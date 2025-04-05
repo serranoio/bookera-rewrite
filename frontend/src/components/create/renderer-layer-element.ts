@@ -115,8 +115,8 @@ export class RendererLayerElement extends LitElement {
 
     this.panelHandler.addComponent({
       ...newPanelEvent,
-      componentId: uuidv4(),
-      internalIds: [],
+      componentID: uuidv4(),
+      internalIDs: [],
     });
   }
 
@@ -161,10 +161,10 @@ export class RendererLayerElement extends LitElement {
 
     const id = uuidv4();
     this.panelHandler.addComponent({
-      componentId: id,
+      componentID: id,
       name: StudioPageView.Body,
       type: StudioPageView.Body,
-      internalIds: [],
+      internalIDs: [],
     });
   }
 

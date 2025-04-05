@@ -55,7 +55,7 @@ export const getExtractContentsConfigFromH = (
   return ExtractContentsMode.CHAPTER;
 };
 
-export const findOutlineById = (
+export const findOutlineByID = (
   outlines: Outline[],
   outlineProperty: OutlineProperty
 ) => {
@@ -416,7 +416,7 @@ export class BodyElement extends LitElement {
             this.editorDiv?.setAttribute(OUTLINE_ID, this.outlineProperty.id);
             this.editorDiv?.setAttribute(OUTLINE_H, this.outlineProperty.h!);
 
-            const desiredOutline = findOutlineById(
+            const desiredOutline = findOutlineByID(
               this.studioPageData.content.config.outline,
               this.outlineProperty
             )!;

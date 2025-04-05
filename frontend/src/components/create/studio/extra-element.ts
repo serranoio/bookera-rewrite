@@ -7,7 +7,7 @@ import {
   studioPageContext,
   updateAllBodyInstancesInEveryPanel,
 } from "../../../lib/model/context";
-import { BOOKERA_STUDIO } from "../../../lib/model/meta";
+import { BOOKERA_STUDIO } from "../../../lib/model/util";
 import { updateBookStructure, updateTheMotherShip } from "../body-element";
 import { Manuscript } from "../../../lib/git/manuscript";
 import {

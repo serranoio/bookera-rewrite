@@ -6,12 +6,10 @@ import { html } from "lit";
 import "./nav-element";
 import "./footer-element";
 import { URL_EVENT_CHANGE } from "../../lib/model/site";
-import { BOOKERA_STUDIO, MANUSCRIPT } from "../../lib/model/meta";
-import { provide } from "@lit/context";
-import { urlContext } from "./url-context";
 import "../../pages/main-element";
 import "../../pages/manuscript-element";
 import "../../pages/studio-element";
+import { BOOKERA_STUDIO, MANUSCRIPT } from "../../lib/model/util";
 export const URL_PARAMS_CHANGE = "url-params-change";
 
 @customElement("layout-element")
@@ -53,7 +51,6 @@ export class LayoutElement extends LitElement {
     if (this.url === "/") {
       return html`<main-element></main-element>`;
     } else if (this.url === "/" + BOOKERA_STUDIO.toLowerCase()) {
-      console.log("studio");
       return html`<studio-element></studio-element>`;
     } else if (this.url === MANUSCRIPT) {
       return html`<slot name="create-element-slot"></slot>`;

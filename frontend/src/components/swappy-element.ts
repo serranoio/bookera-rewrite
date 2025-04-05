@@ -1,6 +1,6 @@
 import { LitElement, html, css, PropertyValueMap } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
-import base from "../lib/styles/base";
+import base from "../lib/stylesheets/base";
 import { createSwapy } from "swapy";
 import {
   UPLOADED_FILE_ORDER_CHANGE,

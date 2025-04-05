@@ -2,7 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, property, query, state } from "lit/decorators.js";
 import { Manuscript } from "../../lib/git/manuscript";
 import { formatDate } from "../../lib/model/util";
-import base from "../../lib/styles/base";
+import base from "../../lib/stylesheets/base";
 import { DELETE_MANUSCRIPT_EVENT } from "../../pages/studio-element";
 
 export const infoList = [

@@ -28,4 +28,8 @@ export default css`
 
     /* cursor: col-resize; */
   }
+
+  slot {
+    display: block;
+  }
 `;

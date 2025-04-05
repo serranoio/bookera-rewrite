@@ -3,7 +3,7 @@ import config from "../twind.config";
 import { customElement, state } from "lit/decorators.js";
 import install from "@twind/with-web-components";
 import { html, css } from "lit";
-import { navSize } from "../lib/model/meta";
+import { navSize } from "../lib/model/util";
 import { msg } from "@lit/localize";
 import "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/components/card/card.js";
 import "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.19.1/cdn/components/badge/badge.js";

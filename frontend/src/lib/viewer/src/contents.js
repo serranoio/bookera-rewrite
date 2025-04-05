@@ -664,7 +664,7 @@ class Contents {
 			target.indexOf("#") > -1) {
 
 			let id = target.substring(target.indexOf("#")+1);
-			let el = this.document.getElementById(id);
+			let el = this.document.getElementByID(id);
 			if(el) {
 				if (isWebkit) {
 					// Webkit reports incorrect bounding rects in Columns
@@ -732,7 +732,7 @@ class Contents {
 		if(!this.document) return false;
 
 		// Check if link already exists
-		styleEl = this.document.getElementById(key);
+		styleEl = this.document.getElementByID(key);
 		if (!styleEl) {
 			styleEl = this.document.createElement("style");
 			styleEl.id = key;

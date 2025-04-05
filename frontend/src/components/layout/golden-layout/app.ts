@@ -22,12 +22,12 @@ import {
 } from "../../../lib/model/context";
 
 export interface Component {
-  componentId: string;
+  componentID: string;
   id?: string;
   type: string;
   name: string;
   extraData?: any;
-  internalIds: string[];
+  internalIDs: string[];
 }
 export class App {
   private readonly _layoutElement: HTMLElement;
@@ -61,11 +61,11 @@ export class App {
     if (element.children[0].nodeName === "BODY-ELEMENT") {
       const editorDivInBody =
         element.children[0].shadowRoot?.querySelector("#editor");
-      const outlineId = editorDivInBody?.getAttribute(OUTLINE_ID);
+      const outlineID = editorDivInBody?.getAttribute(OUTLINE_ID);
 
       const outline = this._studioPageData.content.config.outline.find(
         (outline: Outline) => {
-          return outline.id === outlineId;
+          return outline.id === outlineID;
         }
       );
 
@@ -120,17 +120,17 @@ export class App {
 
     document.addEventListener(
       SET_COMPONENT_ID,
-      this._listenToComponentId.bind(this)
+      this._listenToComponentID.bind(this)
     );
   }
 
-  _listenToComponentId(e: any) {
-    this.components[this.components.length - 1].internalIds.push(e.detail);
+  _listenToComponentID(e: any) {
+    this.components[this.components.length - 1].internalIDs.push(e.detail);
   }
 
   _listenToDelete(e: any) {
     this.components = this.components.filter(
-      (component: Component) => !component.internalIds.includes(e.detail)
+      (component: Component) => !component.internalIDs.includes(e.detail)
     );
   }
 
@@ -176,7 +176,7 @@ export class App {
         BooleanComponent.typeName,
         undefined,
         component.name,
-        component.componentId
+        component.componentID
       );
     }
   }
@@ -184,7 +184,7 @@ export class App {
   private createComponent(container: ComponentContainer) {
     document.dispatchEvent(
       new CustomEvent(SET_COMPONENT_ID, {
-        detail: this.components[this.components.length - 1].componentId,
+        detail: this.components[this.components.length - 1].componentID,
         composed: true,
         bubbles: true,
       })

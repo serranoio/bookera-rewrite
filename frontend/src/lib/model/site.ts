@@ -11,8 +11,6 @@ export const URL_EVENT_CHANGE = "url-event-change";
 
 export const UPDATE_GRAPH_EVENT = "update-graph-event";
 
-export const NEW_PANEL_EVENT = "new-panel-event";
-
 export interface NewPanelEventType {
   type:
     | BookeraPlusView

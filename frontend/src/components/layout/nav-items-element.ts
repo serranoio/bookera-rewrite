@@ -7,7 +7,7 @@ import {
   BACK_TO_STUDIO,
   BOOKERA_STUDIO,
   dashedCase,
-} from "../../lib/model/meta";
+} from "../../lib/model/util";
 import "https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.16.0/cdn/components/button/button.js";
 
 @customElement("nav-items-element")

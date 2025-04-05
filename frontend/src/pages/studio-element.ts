@@ -1,6 +1,6 @@
 import { LitElement, html, css, PropertyValueMap } from "lit";
 import { customElement, query, state } from "lit/decorators.js";
-import base from "../lib/styles/base";
+import base from "../lib/stylesheets/base";
 import {
   addImage,
   addNewManuscript,
@@ -24,6 +24,7 @@ import "../components/swappy-element";
 import { FileConversion, MdImage } from "../lib/git/file-conversion";
 import { getUniqueId } from "../components/libs/golden-layout/src/ts/utils/utils";
 import "../components/studio/manuscript-list-element";
+import localforage from "localforage";
 
 enum Stage {
   SELECT_STORAGE = "Select Storage",
@@ -330,6 +331,12 @@ export class StudioElement extends LitElement {
 
     files.forEach((file: File) => {
       this.handleFileReading(file);
+    });
+
+    localforage.config({
+      name: "serranolabs-bookera",
+      version: 1.0,
+      storeName: "bookera",
     });
   }
 
