@@ -1,22 +1,22 @@
-import FroalaEditor from "froala-editor";
-import { LitElement, html } from "lit";
-import { customElement, property, query, state } from "lit/decorators.js";
-import "../components/studio/manuscript-view/side-panel/side-panel-element";
-import "../components/studio/manuscript-view/panel/panel-element";
+import FroalaEditor from 'froala-editor';
+import { LitElement, html } from 'lit';
+import { customElement, property, query, state } from 'lit/decorators.js';
+import '../components/studio/manuscript-view/side-panel/side-panel-element';
+import '../components/studio/manuscript-view/panel/panel-element';
 import {
   MINIMMAL_PANEL_WIDTH,
   PanelElement,
   PanelTab,
-} from "../components/studio/manuscript-view/panel/panel-element";
-import { genShortID, transformVariableIntoKey } from "../lib/model/util";
+} from '../components/studio/manuscript-view/panel/panel-element';
+import { genShortID, transformVariableIntoKey } from '../lib/model/util';
 import {
   MINIMUM_WIDTH_HIT,
   PANEL_RESIZE_EVENT,
   PanelResizeEventDetail,
-} from "../components/studio/manuscript-view/panel/panel-handle/panel-handle-element";
-import { Bag, BagManager, CreateBagManager } from "@pb33f/saddlebag";
-import { render } from "lit-element";
-import { notify } from "../lib/model/lit";
+} from '../components/studio/manuscript-view/panel/panel-handle/panel-handle-element';
+import { Bag, BagManager, CreateBagManager } from '@pb33f/saddlebag';
+import { render } from 'lit-element';
+import { notify } from '../lib/model/lit';
 import {
   OUTLINE_TAB,
   SEARCH_TAB,
@@ -25,13 +25,13 @@ import {
   OPEN_SIDE_PANEL_TAB,
   POMODORO_TAB,
   CALENDAR_TAB,
-} from "../components/studio/manuscript-view/side-panel/panel-bar-element/panel-bar-element";
+} from '../components/studio/manuscript-view/side-panel/panel-bar-element/panel-bar-element';
 import {
   SendSettingToSidebar,
   SendSettingToSidebarEvent,
   SendSettingsToSidebarEvent,
   SendSettingsToSidebarType,
-} from "../components/studio/manuscript-view/modules/util";
+} from '../components/studio/manuscript-view/modules/util';
 import {
   LeftTabsKey,
   RightTabsKey,
@@ -40,16 +40,23 @@ import {
   TabsBag,
   TabsBagKey,
   TabsSingleton,
-} from "../lib/model/tab";
+} from '../lib/model/tab';
 import {
   CLOSE_PANEL_EVENT,
   NEW_PANEL_EVENT,
   PanelDrop,
   SPLIT_PANEL_EVENT,
   SplitPanelEventType,
-} from "../lib/model/panel";
-import { OPEN_OUTLINE_EVENT } from "../lib/model/site";
-import localforage from "localforage";
+} from '../lib/model/panel';
+import { OPEN_OUTLINE_EVENT } from '../lib/model/site';
+import localforage from 'localforage';
+import {
+  ModuleRegistry,
+  ModuleRegistryKey,
+  ModuleRegistrykey,
+  Registry,
+} from '../components/studio/manuscript-view/modules/registry';
+import { Module } from '../components/studio/manuscript-view/modules/module';
 
 interface Panel {
   tabs: PanelTab[];
@@ -61,12 +68,12 @@ interface Panel {
 
 // what if we make Panels a reference to the dom instead?
 
-@customElement("manuscript-element")
+@customElement('manuscript-element')
 export class ManuscriptElement extends LitElement {
-  @query("#editor-div")
+  @query('#editor-div')
   editorDiv: Element | null;
 
-  @query("#panels-section")
+  @query('#panels-section')
   panelsSection: Element | null;
 
   @state()
@@ -95,7 +102,7 @@ export class ManuscriptElement extends LitElement {
   updatePanelWidth(panelID: string, width: number) {
     const updatedPanel = document
       .querySelector(`#${panelID}`)
-      ?.shadowRoot?.querySelector("#panel-container");
+      ?.shadowRoot?.querySelector('#panel-container');
     updatedPanel!.style.width = `${width}rem`;
   }
 
@@ -155,7 +162,7 @@ export class ManuscriptElement extends LitElement {
         newPanel.updateWidth(newPanel.minimumWidth);
       } else {
         console.log(
-          "could not find more width to the left, searching to the right"
+          'could not find more width to the left, searching to the right'
         );
         for (let i = currentPanelLocation + 1; i < panelElements.length; i++) {
           // if we can close this further, do it, if not move on.
@@ -190,9 +197,9 @@ export class ManuscriptElement extends LitElement {
           });
         } else {
           notify(
-            "Panel doesnt fit. If you got here, just delete some panels haha, you have too much",
-            "warning",
-            ""
+            'Panel doesnt fit. If you got here, just delete some panels haha, you have too much',
+            'warning',
+            ''
           );
           return false;
         }
@@ -267,7 +274,7 @@ export class ManuscriptElement extends LitElement {
   }
 
   private getAllPanels = () => {
-    return this.panelsSection!.querySelectorAll("panel-element")!;
+    return this.panelsSection!.querySelectorAll('panel-element')!;
   };
 
   // if I can move a panel to the right, AND the panel shrinks as well up until minimumWidth, that would be money
@@ -291,7 +298,7 @@ export class ManuscriptElement extends LitElement {
     }
   }
 
-  private createPanelWithNewTabs(tabs: PanelTab[]) {
+  private createPanelWithNewTabs(tabs: PanelTab[]): PanelElement {
     const panelElement = new PanelElement();
     panelElement.id = genShortID(6);
     panelElement.panelID = panelElement.id;
@@ -311,6 +318,7 @@ export class ManuscriptElement extends LitElement {
     const panelElement = this.createPanelWithNewTabs([
       PanelTab.CreateNewPanel(e.detail),
     ]);
+
     panelElement.updateLastElement(true);
 
     this.panelsSection!.appendChild(panelElement);
@@ -345,10 +353,20 @@ export class ManuscriptElement extends LitElement {
       this.openSidePanelEvent.bind(this)
     );
 
-    addEventListener("resize", this.changePanelsToPercentage.bind(this));
+    addEventListener('resize', this.changePanelsToPercentage.bind(this));
 
     const bagManager = CreateBagManager(true);
-    const tabsBag = TabsSingleton.InitializeTabsInBag(bagManager);
+    TabsSingleton.CreateBag(bagManager);
+    ModuleRegistry.InitializeModulesInBag(bagManager);
+    const moduleRegistryBag = bagManager.getBag<Module>(ModuleRegistryKey);
+
+    moduleRegistryBag?.onPopulated(this.onModuleRegistryPopulated.bind(this));
+  }
+
+  onModuleRegistryPopulated(bag: Map<string, Module> | undefined) {
+    // * from here, we initiatlize tabsBag
+    const bagManager = CreateBagManager(true);
+    TabsSingleton.InitializeTabsInBag(bagManager, bag!);
   }
 
   @state()
@@ -400,54 +418,54 @@ export class ManuscriptElement extends LitElement {
         contentChanged: () => {},
         initialized: () => {},
       },
-      placeholderText: "",
+      placeholderText: '',
       fullPage: true,
       toolbarInline: true,
       toolbarButtons: [
         [
-          "alignLeft",
-          "alignCenter",
-          "formatOLSimple",
-          "alignRight",
-          "alignJustify",
-          "formatOL",
-          "formatUL",
-          "paragraphFormat",
-          "paragraphStyle",
-          "lineHeight",
-          "outdent",
-          "indent",
-          "quote",
-          "image",
+          'alignLeft',
+          'alignCenter',
+          'formatOLSimple',
+          'alignRight',
+          'alignJustify',
+          'formatOL',
+          'formatUL',
+          'paragraphFormat',
+          'paragraphStyle',
+          'lineHeight',
+          'outdent',
+          'indent',
+          'quote',
+          'image',
         ],
       ],
     });
 
-    document?.querySelectorAll(".editor-div").forEach((div) => {
+    document?.querySelectorAll('.editor-div').forEach((div) => {
       new FroalaEditor(div, {
         events: {
           contentChanged: () => {},
           initialized: () => {},
         },
-        placeholderText: "",
+        placeholderText: '',
         fullPage: true,
         toolbarInline: true,
         toolbarButtons: [
           [
-            "alignLeft",
-            "alignCenter",
-            "formatOLSimple",
-            "alignRight",
-            "alignJustify",
-            "formatOL",
-            "formatUL",
-            "paragraphFormat",
-            "paragraphStyle",
-            "lineHeight",
-            "outdent",
-            "indent",
+            'alignLeft',
+            'alignCenter',
+            'formatOLSimple',
+            'alignRight',
+            'alignJustify',
+            'formatOL',
+            'formatUL',
+            'paragraphFormat',
+            'paragraphStyle',
+            'lineHeight',
+            'outdent',
+            'indent',
 
-            "image",
+            'image',
           ],
         ],
       });
@@ -456,26 +474,29 @@ export class ManuscriptElement extends LitElement {
 
   firstUpdated() {
     this.panelsSection?.appendChild(
-      this.createPanelWithNewTabs([new PanelTab("Settings", "Settings")])
+      this.createPanelWithNewTabs([new PanelTab('Settings', 'Settings')])
     );
     this.panelsSection?.appendChild(
-      this.createPanelWithNewTabs([new PanelTab("New Tab", "New Tab")])
+      this.createPanelWithNewTabs([
+        new PanelTab('New Tab', 'New Tab'),
+        new PanelTab('New Tab', 'New Tab'),
+      ])
     );
   }
 
   render() {
     return html`
-      <side-panel-element .panelID=${"left"}></side-panel-element>
+      <side-panel-element .panelID=${'left'}></side-panel-element>
       <div id="panels-section"></div>
       <side-panel-element
-        .panelBarPosition=${"top"}
-        .panelID=${"right"}
+        .panelBarPosition=${'top'}
+        .panelID=${'right'}
       ></side-panel-element>
     `;
   }
 }
 declare global {
   interface HTMLElementTagNameMap {
-    "manuscript-element": ManuscriptElement;
+    'manuscript-element': ManuscriptElement;
   }
 }

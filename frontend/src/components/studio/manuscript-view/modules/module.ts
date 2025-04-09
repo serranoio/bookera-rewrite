@@ -1,35 +1,76 @@
 // anything under settings & extensions is a module.
 
-import { Bag, BagManager } from "@pb33f/saddlebag";
-import { genShortID } from "../../../../lib/model/util";
-import localforage from "localforage";
-import {
-  ColorPalette,
-  ColorPalettesKey,
-} from "./core-modules/theme-switcher/stateful";
-import { User } from "../../../../lib/model/user/author";
+import { genShortID } from '../../../../lib/model/util';
+import { User } from '../../../../lib/model/user/author';
+import { Tab } from '../../../../lib/model/tab';
+
+// module API
+export const UPDATE_MODULE_EVENT = 'update-module-event';
+export type UPDATE_MODULE_EVENT_TYPE = Module;
 
 // modules
+export const ModuleRegistryClasses = {};
 
 // extensions are just extended functionality from the core system, modules
 export class Module {
   version?: string;
   title?: string;
+  tab?: Tab;
+  id?: string;
+  hasSettings?: boolean;
   // * no id since there will always be one instance, of modules. They are not meant to be passed. But, there are versions.
-  constructor(version?: string, title?: string) {
-    if (this.version) {
+  constructor(
+    version?: string,
+    title?: string,
+    tab?: Tab,
+    id?: string,
+    hasSettings?: boolean,
+    constructorType?: any
+  ) {
+    if (version) {
       this.version = version;
     }
-    if (this.title) {
+    if (title) {
       this.title = title;
     }
+    if (constructorType) {
+      ModuleRegistryClasses[this.getConstructorType()] = constructorType;
+    }
+
+    if (tab) {
+      this.tab = tab;
+    }
+    if (tab && id) {
+      this.tab!.id = id;
+    }
+
+    if (id) {
+      this.id = id;
+    } else {
+      this.id = genShortID(10);
+    }
+
+    if (hasSettings) {
+      this.hasSettings = hasSettings;
+    } else {
+      this.hasSettings = false;
+    }
+  }
+
+  getConstructorType() {
+    return this.title?.replaceAll(' ', '').concat('Element');
+  }
+
+  setHasSettings(val: boolean): this {
+    this.hasSettings = val;
+    return this;
   }
 }
 
 export enum ExtensionPageTitle {
-  Details = "details",
-  Features = "features",
-  Changelog = "changelog",
+  Details = 'details',
+  Features = 'features',
+  Changelog = 'changelog',
 }
 
 export class ExtensionPage {
@@ -51,14 +92,17 @@ export class Extension extends Module {
   constructor(
     version?: string,
     title?: string,
+    tab?: Tab,
+    id?: string,
+    hasSettings?: boolean,
+    constructorType?: string,
     isEnabled?: boolean,
     isPublished?: string,
     downloads?: number,
     user?: User,
-    extensionPage?: ExtensionPage,
-    id?: string
+    extensionPage?: ExtensionPage
   ) {
-    super(version, title);
+    super(version, title, tab, id, hasSettings, constructorType);
     this.isPublished = isPublished;
     if (id) {
       this.id = id;
@@ -72,28 +116,3 @@ export class Extension extends Module {
     this.extensionPage = extensionPage;
   }
 }
-
-export class ModuleSingleton {
-  constructor() {}
-
-  static NewModule() {}
-
-  static async InitializeModulesInBag(
-    bagManager: BagManager
-  ): Promise<Bag | undefined> {
-    const modulesBag = bagManager.createBag<Module>(ColorPalettesKey)!;
-
-    let savedModules = await localforage.getItem<Map<string, Module>>(
-      ModuleKey
-    );
-
-    if (!savedModules) {
-    } else {
-      modulesBag.populate(savedModules);
-    }
-
-    return modulesBag;
-  }
-}
-
-export const ModuleKey = "module-key";

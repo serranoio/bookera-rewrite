@@ -1,25 +1,25 @@
-import { LitElement, html, css, PropertyValueMap, TemplateResult } from "lit";
-import { customElement, property, query, state } from "lit/decorators.js";
-import panelElementStyles from "./panel-element.styles";
-import base from "../../../../lib/stylesheets/base";
-import "./panel-handle/panel-handle-element";
+import { LitElement, html, css, PropertyValueMap, TemplateResult } from 'lit';
+import { customElement, property, query, state } from 'lit/decorators.js';
+import panelElementStyles from './panel-element.styles';
+import base from '../../../../lib/stylesheets/base';
+import './panel-handle/panel-handle-element';
 import {
   doesClickContainElement,
   genShortID,
   genUUID,
   sendEvent,
-} from "../../../../lib/model/util";
+} from '../../../../lib/model/util';
 import {
   CLOSE_SIDE_PANEL_EVENT,
   PANEL_RESIZE_EVENT,
-} from "./panel-handle/panel-handle-element";
-import { PanelSide } from "../side-panel/panel-bar-element/panel-bar-element";
-import { Point } from "chart.js";
-import { NewPanelEventType } from "../../../../lib/model/site";
-import { createPanelTab } from "../../../../pages/manuscript-element";
-import { QuoteList } from "../../../../lib/model/hard-coded";
-import "../modules/core-modules/theme-switcher/theme-switcher-element";
-import { ThemeSwitcherElement } from "../modules/core-modules/theme-switcher/theme-switcher-element";
+} from './panel-handle/panel-handle-element';
+import { PanelSide } from '../side-panel/panel-bar-element/panel-bar-element';
+import { Point } from 'chart.js';
+import { NewPanelEventType } from '../../../../lib/model/site';
+import { createPanelTab } from '../../../../pages/manuscript-element';
+import { QuoteList } from '../../../../lib/model/hard-coded';
+import '../modules/modules/theme-switcher/theme-switcher-element';
+import { ThemeSwitcherElement } from '../modules/modules/theme-switcher/theme-switcher-element';
 import {
   CLOSE_PANEL_EVENT,
   IS_DRAGGING_TAB_EVENT,
@@ -31,11 +31,16 @@ import {
   PanelDrop,
   SPLIT_PANEL_EVENT,
   SplitPanelEventType,
-} from "../../../../lib/model/panel";
+} from '../../../../lib/model/panel';
+import { ModuleRegistry } from '../modules/registry';
+import { Module } from '../modules/module';
+import { mo } from '@twind/core';
+import { CreateBagManager, GetBagManager } from '@pb33f/saddlebag';
+import { PanelContentElement, PanelContentType } from './panel-content-element';
 
 export const MINIMMAL_PANEL_WIDTH = 200;
 
-export type PanelTabTypes = "New Tab" | "Body" | "Divider" | "Settings";
+export type PanelTabTypes = 'New Tab' | 'Body' | 'Divider' | 'Settings';
 
 export class PanelTab {
   name: string;
@@ -48,42 +53,24 @@ export class PanelTab {
     this.id = genShortID(6);
   }
 
-  private generateQuirkyQuote() {
-    return QuoteList[Math.trunc(Math.random() * QuoteList.length)];
-  }
-
   static CreateNewPanel(panelTab: PanelTabTypes) {
-    if (panelTab === "Settings") {
+    if (panelTab === 'Settings') {
       return new PanelTab(panelTab, panelTab);
     }
 
-    return new PanelTab("undefined", "Body");
+    return new PanelTab('undefined', 'Body');
   }
 
   renderPanelContents(): TemplateResult {
-    if (this.type === "New Tab") {
-      return html`
-        <div class="fill-panel center empty panel">
-          <p class="blockquote">${this.generateQuirkyQuote()}</p>
-        </div>
-      `;
-    } else if (this.type === "Settings") {
-      const themeSwitcher = new ThemeSwitcherElement("renderInPanel");
-      return html`
-        <div class="fill-panel settings-padding">
-          <!-- make the color switcher with the intention that you are creating an api for it -->
-          ${themeSwitcher}
-        </div>
-      `;
-    }
+    const panelContent = new PanelContentElement(this.type as PanelContentType);
 
-    return html`${this.name}`;
+    return html`${panelContent}`;
   }
 }
 
-const HOVER_CONATINER_CSS = "hover-container";
-const DRAGGED_ELEMENT_CSS = "dragged-element";
-@customElement("panel-element")
+const HOVER_CONATINER_CSS = 'hover-container';
+const DRAGGED_ELEMENT_CSS = 'dragged-element';
+@customElement('panel-element')
 export class PanelElement extends LitElement {
   static styles = [panelElementStyles, base];
 
@@ -148,14 +135,14 @@ export class PanelElement extends LitElement {
       this.handleCreateEmptyTab.bind(this)
     );
 
-    document.addEventListener("pointermove", this.handleDragTab.bind(this));
-    document.addEventListener("pointerup", this.handleDestroyTab.bind(this));
+    document.addEventListener('pointermove', this.handleDragTab.bind(this));
+    document.addEventListener('pointerup', this.handleDestroyTab.bind(this));
   }
 
   handleCreateEmptyTab(e: CustomEvent<NewPanelTabEventType>) {
     if (!(e.detail.panelID === this.panelID)) return;
 
-    this.tabs.push(new PanelTab("New Tab", "New Tab"));
+    this.tabs.push(new PanelTab('New Tab', 'New Tab'));
     this.activeTab = this.tabs[this.tabs.length - 1];
     this.requestUpdate();
   }
@@ -252,7 +239,7 @@ export class PanelElement extends LitElement {
   }
 
   getManuscriptElement() {
-    const manuscriptElement = document.querySelector("manuscript-element");
+    const manuscriptElement = document.querySelector('manuscript-element');
     return manuscriptElement;
   }
 
@@ -326,7 +313,7 @@ export class PanelElement extends LitElement {
     }
 
     this.isPointerDown = false;
-    this.isDraggingTab.hoveredTabElement?.classList.remove("hovered-element");
+    this.isDraggingTab.hoveredTabElement?.classList.remove('hovered-element');
     // @ts-ignore
     this.isDraggingTab = {
       ...this.isDraggingTab,
@@ -366,7 +353,7 @@ export class PanelElement extends LitElement {
 
     if (this.isDraggingTab.el) {
       this.isDraggingTab.el.setAttribute(
-        "style",
+        'style',
         `left: ${e.x - width / 2}px; top: ${e.y - height / 2}px;`
       );
     }
@@ -376,12 +363,12 @@ export class PanelElement extends LitElement {
     if (!this.isDraggingTab) return;
 
     if (!this.isDraggingTab.el && this.isPointerDown) {
-      const el = document.createElement("div");
+      const el = document.createElement('div');
       el.textContent = this.isDraggingTab.tab.name;
-      el.classList.add("dragged-element");
-      el.classList.add("panel-tab");
-      if (this.isDraggingTab.tabElement.classList.contains("active")) {
-        el.classList.add("active");
+      el.classList.add('dragged-element');
+      el.classList.add('panel-tab');
+      if (this.isDraggingTab.tabElement.classList.contains('active')) {
+        el.classList.add('active');
       }
       this.isDraggingTab.el = el;
       document.body.appendChild(el);
@@ -395,7 +382,7 @@ export class PanelElement extends LitElement {
     if (!this.isDraggingTab) return;
 
     const rect = this.shadowRoot
-      ?.querySelector(".tab-content-container")
+      ?.querySelector('.tab-content-container')
       ?.getBoundingClientRect()!;
 
     if (
@@ -406,7 +393,7 @@ export class PanelElement extends LitElement {
     ) {
       this.isDraggingTab.toPanel = this.panelID;
       let element = document.querySelector(`.${HOVER_CONATINER_CSS}`);
-      const hoverContainer = element ? element : document.createElement("div");
+      const hoverContainer = element ? element : document.createElement('div');
       if (!element) {
         hoverContainer.classList.add(HOVER_CONATINER_CSS);
       }
@@ -443,13 +430,13 @@ export class PanelElement extends LitElement {
         },
         {
           duration: 500,
-          fill: "forwards",
+          fill: 'forwards',
         }
       );
 
       document.body.appendChild(hoverContainer);
 
-      console.log("create hover container");
+      console.log('create hover container');
     }
   }
 
@@ -464,11 +451,11 @@ export class PanelElement extends LitElement {
   private updateFill(): boolean {
     if (this.fill && this.panelContainer) {
       this.panelContainer.style.width = `100%`;
-      this.style.width = "100%";
+      this.style.width = '100%';
       return true;
     }
 
-    this.style.width = "auto";
+    this.style.width = 'auto';
 
     return false;
   }
@@ -515,7 +502,7 @@ export class PanelElement extends LitElement {
   protected firstUpdated(
     _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ): void {
-    this.panelContainer = this.shadowRoot!.querySelector("#panel-container")!;
+    this.panelContainer = this.shadowRoot!.querySelector('#panel-container')!;
 
     if (!this.updateFill()) {
       this.updateWidth();
@@ -569,10 +556,10 @@ export class PanelElement extends LitElement {
 
   handleTabClick(e: any) {
     // handle tab close
-    const tabClose = doesClickContainElement(e, { nodeName: "SL-ICON-BUTTON" });
+    const tabClose = doesClickContainElement(e, { nodeName: 'SL-ICON-BUTTON' });
 
     // handle tab click
-    const element = doesClickContainElement(e, { className: "panel-tab" });
+    const element = doesClickContainElement(e, { className: 'panel-tab' });
     if (tabClose) {
       let setNewActiveTab = false;
       this.tabs = this.tabs.filter((tab: PanelTab) => {
@@ -611,7 +598,7 @@ export class PanelElement extends LitElement {
   handleOpenRightSidePanel() {
     setTimeout(() => {
       const panelElementWidth = document
-        .querySelectorAll("side-panel-element")[1]
+        .querySelectorAll('side-panel-element')[1]
         .getBoundingClientRect().width;
 
       if (panelElementWidth > 0) {
@@ -623,7 +610,7 @@ export class PanelElement extends LitElement {
   }
 
   handleCloseRightSidePanel(e) {
-    if ((e.detail.panelID as PanelSide) === "right") {
+    if ((e.detail.panelID as PanelSide) === 'right') {
       this.isRightSidePanelOpened = false;
     }
   }
@@ -637,8 +624,8 @@ export class PanelElement extends LitElement {
           name="layout-text-sidebar"
           @click=${() => {
             sendEvent(this, OPEN_SIDE_PANEL_EVENT, {
-              panelID: "right",
-              position: "right",
+              panelID: 'right',
+              position: 'right',
             });
           }}
         ></sl-icon-button>
@@ -650,14 +637,14 @@ export class PanelElement extends LitElement {
         ${this.tabs.map((tab: PanelTab) => {
           return html`
             <div
-              class="panel-tab ${this.activeTab?.id === tab.id ? "active" : ""}"
+              class="panel-tab ${this.activeTab?.id === tab.id ? 'active' : ''}"
               data-id=${tab.id}
               @pointerenter=${(e: PointerEvent) => {
                 if (
                   this.isDraggingTab &&
                   this.isDraggingTab.tab.id !== tab.id
                 ) {
-                  e.target!.classList.add("hovered-element");
+                  e.target!.classList.add('hovered-element');
                   this.isDraggingTab.hoveredTab = tab;
                   this.isDraggingTab.hoveredTabElement = e.target as Element;
                   sendEvent(this, IS_DRAGGING_TAB_EVENT, this.isDraggingTab);
@@ -670,7 +657,7 @@ export class PanelElement extends LitElement {
                 ) {
                   this.isDraggingTab.hoveredTab = null;
                   this.isDraggingTab.hoveredTabElement = null;
-                  e.target!.classList.remove("hovered-element");
+                  e.target!.classList.remove('hovered-element');
                   sendEvent(this, IS_DRAGGING_TAB_EVENT, this.isDraggingTab);
                 }
               }}
@@ -714,7 +701,7 @@ export class PanelElement extends LitElement {
           if (!this.isDraggingTab) return;
 
           this.isDraggingTab.hoveredTabElement = e.target as Element;
-          (e.target as Element).classList.add("hovered-element");
+          (e.target as Element).classList.add('hovered-element');
           sendEvent<IsDraggingTabEvent>(
             this,
             IS_DRAGGING_TAB_EVENT,
@@ -726,7 +713,7 @@ export class PanelElement extends LitElement {
 
           this.isDraggingTab.hoveredTabElement = null;
 
-          (e.target as Element).classList.remove("hovered-element");
+          (e.target as Element).classList.remove('hovered-element');
           sendEvent<IsDraggingTabEvent>(
             this,
             IS_DRAGGING_TAB_EVENT,
@@ -787,6 +774,6 @@ export class PanelElement extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "panel-element": PanelElement;
+    'panel-element': PanelElement;
   }
 }

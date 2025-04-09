@@ -1,52 +1,101 @@
-import { LitElement, html, css } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-import { Tab } from "../../../../../../lib/model/this.tab";
-import { PanelBarPosition } from "../../side-panel-element";
-import base from "../../../../../../lib/stylesheets/base";
-import tabElementStyles from "./tab-element.styles";
+import { LitElement, html, css, TemplateResult } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { PanelBarPosition } from '../../side-panel-element';
+import base from '../../../../../../lib/stylesheets/base';
+import tabElementStyles from './tab-element.styles';
+import { Tab, UPDATE_TAB_EVENT } from '../../../../../../lib/model/tab';
+import { BagManager } from '@pb33f/saddlebag';
+import { SlSelect, SlSelectEvent } from '@shoelace-style/shoelace';
 
-@customElement("tab-element")
+export const UpdateTabMenuEvent = 'update-menu-event';
+export interface UpdateTabMenuType<MenuOptionType = any> {
+  menuOptions: MenuOptionType[];
+  selectedMenuOptions: any[];
+  handleSelect: any;
+  tabId: string;
+}
+
+@customElement('tab-element')
 export class TabElement extends LitElement {
-  static styles = [base, tabElementStyles];
+  static styles = [base];
 
-  @state()
+  @property()
   tab: Tab;
 
   @state()
   _selectedTab: Tab | null = null;
 
+  @state()
+  menuOptions: any[] = [];
+
+  @state()
+  selectedMenuOptions: any = [];
+
+  @state()
+  handleSelect: (id: string) => void;
+
   set selectedTab(value: Tab) {
     this._selectedTab = value;
   }
 
-  @state()
-  _panelBarPosition!: PanelBarPosition;
+  @property()
+  panelBarPosition!: PanelBarPosition;
 
-  set panelBarPosition(value: PanelBarPosition) {
-    this._panelBarPosition = value;
+  protected createRenderRoot(): Element | ShadowRoot {
+    return this;
   }
 
-  constructor(tab: Tab) {
+  constructor() {
     super();
-    this.tab = tab;
+
+    // @ts-ignore
+    document.addEventListener(
+      UpdateTabMenuEvent,
+      this.updateMenuEvent.bind(this)
+    );
+  }
+
+  updateMenuEvent(e: CustomEvent<UpdateTabMenuType>) {
+    if (e.detail.tabId !== this.tab.id) {
+      return;
+    }
+
+    this.selectedMenuOptions = e.detail.selectedMenuOptions;
+    this.menuOptions = e.detail.menuOptions;
+    this.handleSelect = e.detail.handleSelect;
+    console.log(this.menuOptions);
+    this.requestUpdate();
   }
 
   render() {
-    if (this.tab.menuItems) {
+    console.log(this.menuOptions);
+    if (this.menuOptions) {
       return html`
-        <div class=${`${this._panelBarPosition}-div`}>
+        <div class=${`${this.panelBarPosition}-div`}>
           <sl-tooltip content="${this.tab.name!}">
             <sl-dropdown>
               <sl-icon-button
                 slot="trigger"
                 data-value=${this.tab.value!}
-                class="tab-button ${this._selectedTab.value === this.tab.value
-                  ? "active"
-                  : ""}"
+                class="tab-button ${this._selectedTab?.value === this.tab.value
+                  ? 'active'
+                  : ''}"
                 name=${this.tab.value!}
                 >${this.tab.name}</sl-icon-button
               >
-              <sl-menu> ${this.tab.menuItems} </sl-menu>
+              <sl-menu
+                @sl-select=${(e: SlSelectEvent) => {
+                  const id: string = e.detail.item.value;
+
+                  this.handleSelect(id);
+                }}
+              >
+                ${this.menuOptions.map((menuOption) => {
+                  return html`<sl-menu-item value=${menuOption.id}
+                    >${menuOption.name}</sl-menu-item
+                  >`;
+                })}
+              </sl-menu>
             </sl-dropdown>
           </sl-tooltip>
         </div>
@@ -54,13 +103,13 @@ export class TabElement extends LitElement {
     }
 
     return html`
-      <div class=${`${this._panelBarPosition}-div`}>
+      <div class=${`${this.panelBarPosition}-div`}>
         <sl-tooltip content="${this.tab.name}">
           <sl-icon-button
             data-value=${this.tab.value}
-            class="tab-button ${this._selectedTab.value === this.tab.value
-              ? "active"
-              : ""}"
+            class="tab-button ${this._selectedTab?.value === this.tab.value
+              ? 'active'
+              : ''}"
             name=${this.tab.value}
             >${this.tab.name}</sl-icon-button
           >
@@ -72,6 +121,6 @@ export class TabElement extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "tab-element": TabElement;
+    'tab-element': TabElement;
   }
 }

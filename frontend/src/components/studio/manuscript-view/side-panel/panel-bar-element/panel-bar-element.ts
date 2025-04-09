@@ -1,14 +1,14 @@
-import { LitElement, html, css, PropertyValueMap } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
-import panelBarElementStyles from "./panel-bar-element.styles";
-import base from "../../../../../lib/stylesheets/base";
+import { LitElement, html, css, PropertyValueMap } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import panelBarElementStyles from './panel-bar-element.styles';
+import base from '../../../../../lib/stylesheets/base';
 import {
   doesClickContainElement,
   sendEvent,
-} from "../../../../../lib/model/util";
-import { PanelTabTypes } from "../../panel/panel-element";
-import { OpenTabInSidePanel, PanelBarPosition } from "../side-panel-element";
-import { SendSettingsToSidebarType } from "../../modules/util";
+} from '../../../../../lib/model/util';
+import { PanelTabTypes } from '../../panel/panel-element';
+import { OpenTabInSidePanel, PanelBarPosition } from '../side-panel-element';
+import { SendSettingsToSidebarType } from '../../modules/util';
 import {
   LeftTabsKey,
   OUTLINE_TAB,
@@ -18,14 +18,14 @@ import {
   Tab,
   TabsBag,
   TabsSingleton,
-} from "../../../../../lib/model/tab";
-import { NEW_PANEL_EVENT } from "../../../../../lib/model/panel";
-import { CreateBagManager } from "@pb33f/saddlebag";
-import { TabElement } from "./tab-element/tab-element";
+} from '../../../../../lib/model/tab';
+import { NEW_PANEL_EVENT } from '../../../../../lib/model/panel';
+import { CreateBagManager } from '@pb33f/saddlebag';
+import { TabElement } from './tab-element/tab-element';
 
-export type PanelSide = "left" | "right";
+export type PanelSide = 'left' | 'right';
 
-@customElement("panel-bar-element")
+@customElement('panel-bar-element')
 export class PanelBarElement extends LitElement {
   static styles = [panelBarElementStyles, base];
 
@@ -36,10 +36,10 @@ export class PanelBarElement extends LitElement {
   selectedTab: Tab = OUTLINE_TAB;
 
   @property()
-  panelID: PanelSide = "left";
+  panelID: PanelSide = 'left';
 
   @property()
-  panelBarPosition: PanelBarPosition = "normal";
+  panelBarPosition: PanelBarPosition = 'normal';
 
   constructor() {
     super();
@@ -72,14 +72,14 @@ export class PanelBarElement extends LitElement {
   }
 
   selectLeftTab(tab: TabsBag | undefined) {
-    if (this.panelID === "left") {
+    if (this.panelID === 'left') {
       this.selectedTab = tab as Tab;
     }
     this.requestUpdate();
   }
 
   selectRightTab(tab: TabsBag | undefined) {
-    if (this.panelID === "right") {
+    if (this.panelID === 'right') {
       this.selectedTab = tab as Tab;
     }
     this.requestUpdate();
@@ -90,7 +90,7 @@ export class PanelBarElement extends LitElement {
   ): void {}
 
   onPopulated(tabsBag: Map<string, TabsBag> | undefined) {
-    if (this.panelID === "left") {
+    if (this.panelID === 'left') {
       this.tabs = (tabsBag?.get(LeftTabsKey) as Tab[])!;
       this.selectedTab = (tabsBag?.get(SelectedLeftTabKey) as Tab)!;
     } else {
@@ -100,16 +100,17 @@ export class PanelBarElement extends LitElement {
   }
 
   addRightTab(tabs: TabsBag | undefined) {
-    if (this.panelID === "right") {
+    if (this.panelID === 'right') {
       this.tabs = (tabs as Tab[])!;
     }
     this.requestUpdate();
   }
 
   addLeftTab(tabs: TabsBag | undefined) {
-    if (this.panelID === "left") {
+    if (this.panelID === 'left') {
       this.tabs = (tabs as Tab[])!;
     }
+
     this.requestUpdate();
   }
 
@@ -122,7 +123,7 @@ export class PanelBarElement extends LitElement {
   }
 
   renderSettingsAndUser() {
-    if (this.panelBarPosition === "top") {
+    if (this.panelBarPosition === 'top') {
       return html``;
     }
 
@@ -138,7 +139,7 @@ export class PanelBarElement extends LitElement {
           @sl-select=${(e: CustomEvent) => {
             let val = e.detail.item.value as PanelTabTypes;
 
-            if (val === "Settings") {
+            if (val === 'Settings') {
               sendEvent(this, NEW_PANEL_EVENT, val);
             }
           }}
@@ -157,17 +158,16 @@ export class PanelBarElement extends LitElement {
       <div
         class="side-panel ${this.panelBarPosition}"
         @click=${(e: any) => {
-          const el = doesClickContainElement(e, { nodeName: "SL-ICON-BUTTON" });
+          const el = doesClickContainElement(e, { nodeName: 'SL-ICON-BUTTON' });
           if (!el) return;
 
           return;
-
           this.selectedTab = TabsSingleton.tabs.find(
             (tab) => tab.value === el.dataset.value
           )!;
 
           if (!this.selectedTab) {
-            console.log("this tab was not found in all of the tabs");
+            console.log('this tab was not found in all of the tabs');
           }
 
           if (this.selectedTab?.action) {
@@ -185,11 +185,10 @@ export class PanelBarElement extends LitElement {
         }}
       >
         ${this.tabs.map((tab: Tab) => {
-          const tabElement = new TabElement(tab);
-          tabElement.selectedTab = this.selectedTab;
-          tabElement.panelBarPosition = this.panelBarPosition;
-
-          return tabElement.render();
+          return html`<tab-element
+            .tab=${tab}
+            .panelBarPosition=${this.panelBarPosition}
+          ></tab-element>`;
         })}
         ${this.renderSettingsAndUser()}
       </div>
@@ -199,6 +198,6 @@ export class PanelBarElement extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "panel-bar-element": PanelBarElement;
+    'panel-bar-element': PanelBarElement;
   }
 }

@@ -1,4 +1,4 @@
-import { css } from "lit";
+import { css } from 'lit';
 
 export default css`
   :host {
@@ -9,6 +9,8 @@ export default css`
     box-sizing: border-box;
     padding: 0;
     margin: 0;
+    transition: color 0.2s;
+    transition: background-color 0.2s;
   }
 
   h2 {
@@ -104,6 +106,15 @@ export default css`
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .flex {
+    display: flex;
+  }
+
+  .vertical,
+  .column {
+    flex-direction: column;
   }
 
   .button-hundred {

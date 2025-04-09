@@ -1,4 +1,4 @@
-import { css } from "lit";
+import { css } from 'lit';
 export default css`
   :host {
     display: inline;
@@ -118,14 +118,5 @@ export default css`
     transition: all 0.2s;
     box-shadow: 0 0 2px 2px var(--slate-300);
     margin-right: 5px;
-  }
-
-  .fill-panel {
-    width: 100%;
-    height: 100%;
-  }
-
-  .settings-padding {
-    padding: var(--spacingSmall) var(--spacing);
   }
 `;
