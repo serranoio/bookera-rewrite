@@ -1009,10 +1009,9 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@pb33f/saddlebag@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.npmjs.org/@pb33f/saddlebag/-/saddlebag-0.2.1.tgz"
-  integrity sha512-zVALv461z7n0eYnHeBXDHT3w4yDyc7rd7kgmB2xCEsxhUpeXybtwb+c04HEflHUHQ5f4joQH2L2iEZd6W4k1yg==
+"@pb33f/saddlebag@file:../../saddlebag-js":
+  version "0.1.0"
+  resolved "file:../../saddlebag-js"
 
 "@rollup/plugin-babel@^5.2.0":
   version "5.3.1"

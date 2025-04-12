@@ -1,6 +1,10 @@
 import { Bag, BagManager, CreateBagManager } from '@pb33f/saddlebag';
 import localforage from 'localforage';
-import { genShortID } from '../../../../../../lib/model/util';
+import {
+  genShortID,
+  sendEvent,
+  sendGlobalEvent,
+} from '../../../../../../lib/model/util';
 import {
   BaseColor,
   ColorSet,
@@ -11,7 +15,6 @@ import {
 } from './color-sets';
 import { html } from 'lit';
 import { ColorMode } from './theme-switcher-element';
-import { DarkMode } from './dark-mode';
 
 export class ColorPalette {
   id?: string;
@@ -181,7 +184,11 @@ export class ColorPalettesSingleton {
   }
 
   static GetSelectedColorPalette(bagManager: BagManager): ColorPalette {
-    return bagManager.getBag(ColorPalettesKey)?.get(SelectedColorPaletteKey)!;
+    const cp = bagManager
+      .getBag(ColorPalettesKey)
+      ?.get(SelectedColorPaletteKey)!;
+
+    return Object.assign(new ColorPalette(), cp);
   }
 
   static SetSelectedColorPalette(
@@ -195,12 +202,14 @@ export class ColorPalettesSingleton {
     localforage.setItem(ColorPalettesKey, colorPalettes.export());
   }
 
-  static NewColorPalette(
+  static NewColorPaletteAndSelect(
     bagManager: BagManager,
     newColorPalette: ColorPalette
   ) {
     const bag = bagManager.getBag<ColorPalette>(ColorPalettesKey);
     bag?.set(newColorPalette.id!, newColorPalette);
+
+    bag?.set(SelectedColorPaletteKey, newColorPalette);
 
     const map = bagManager.getBag<ColorPalette>(ColorPalettesKey)?.export();
     localforage.setItem(ColorPalettesKey, map);
@@ -223,15 +232,9 @@ export class ColorPalettesSingleton {
         ColorPalettesSingleton.defaultColorPalette;
 
       // putting default in the main bag
-      ColorPalettesSingleton.NewColorPalette(
+      ColorPalettesSingleton.NewColorPaletteAndSelect(
         bagManager,
         ColorPalettesSingleton.defaultColorPalette
-      );
-
-      // setting selected
-      colorPalettesBag.set(
-        SelectedColorPaletteKey,
-        ColorPalettesSingleton.selectedColorPalette
       );
     } else {
       colorPalettesBag.populate(savedTabsContent);

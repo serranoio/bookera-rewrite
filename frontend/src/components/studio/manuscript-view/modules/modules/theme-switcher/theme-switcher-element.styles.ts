@@ -5,6 +5,9 @@ export default css`
     border-bottom: 2px solid var(--slate-200);
     margin-left: 2px;
   }
+  .panel-container {
+    padding: var(--spacing);
+  }
   .title-box {
     display: flex !important;
     align-items: center;

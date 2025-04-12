@@ -10,7 +10,7 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import themeSwitcherElementStyles from './theme-switcher-element.styles';
 import base from '../../../../../../lib/stylesheets/base';
 
-export type RenderMode = 'renderInPanel' | '';
+export type RenderMode = 'renderInPanel' | 'renderInSidePanel';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.0/cdn/components/color-picker/color-picker.js';
 import {
   BaseColor,
@@ -26,12 +26,13 @@ import {
 export type ColorMode = 'Light' | 'Dark';
 
 import { SlColorPicker, SlMenuItem, SlSelect } from '@shoelace-style/shoelace';
+import { Tab, UPDATE_TAB_EVENT } from '../../../../../../lib/model/tab';
 import {
-  Tab,
-  TabsSingleton,
-  UPDATE_TAB_EVENT,
-} from '../../../../../../lib/model/tab';
-import { Bag, BagManager, CreateBagManager } from '@pb33f/saddlebag';
+  Bag,
+  BagManager,
+  BagSubscription,
+  CreateBagManager,
+} from '@pb33f/saddlebag';
 import { notify } from '../../../../../../lib/model/lit';
 import {
   ColorPalette,
@@ -44,7 +45,9 @@ import {
 } from './stateful';
 import {
   doesClickContainElement,
+  genShortID,
   sendEvent,
+  sendGlobalEvent,
 } from '../../../../../../lib/model/util';
 import {
   _handleSelectInternals,
@@ -61,16 +64,28 @@ import './dark-mode';
 import { DarkMode } from './dark-mode';
 import { DarkModeKey, DarkModeSingleton } from './dark-mode-state';
 import {
-  UpdateTabMenuEvent,
-  UpdateTabMenuType,
-} from '../../../side-panel/panel-bar-element/tab-element/tab-element';
-import {
   Module,
+  RequestUpdateEvent,
+  RequestUpdateEventType,
   UPDATE_MODULE_EVENT,
   UPDATE_MODULE_EVENT_TYPE,
 } from '../../module';
 import { DEFAULT_VERSION } from '../../core-modules';
 import { ModuleRegistry } from '../../registry';
+import {
+  UpdateTabMenuType,
+  UpdateTabMenuEvent,
+  extractMenuOptions,
+  BookeraApiAction,
+} from '../../../side-panel/panel-bar-element/tab-element/tabMenu';
+import { AskModuleForStateEvent } from '../../../side-panel/panel-bar-element/tab-element/tab-element';
+import { bookeraApi } from '../../../../../../lib/model/bookeraApi';
+import {
+  IS_DRAGGING_TAB_EVENT,
+  OPEN_SIDE_PANEL_EVENT,
+  OpenSidePanelEventType,
+  panelApi,
+} from '../../../../../../lib/model/panel';
 
 // you need to rethink how dark theme works.
 // when applying dark theme, you are swapping the colors. It breaks switching data-themes.
@@ -141,6 +156,15 @@ export class ThemeSwitcherElement extends LitElement {
   @state()
   modeBag!: Bag<ColorMode>;
 
+  @state()
+  instanceId: string = genShortID(10);
+
+  @state()
+  _currentColorMode!: ColorMode;
+
+  @state()
+  hasFirstUpdated: boolean = false;
+
   constructor(renderMode: RenderMode, module: Module) {
     super();
 
@@ -150,25 +174,53 @@ export class ThemeSwitcherElement extends LitElement {
     this.primaryColor = getComputedStyle(document.body).getPropertyValue(
       '--primary'
     );
+  }
 
+  private listenToUpdates(e: CustomEvent<RequestUpdateEventType>) {
+    if (e.detail.moduleId === this.module.id) {
+      this.requestUpdate();
+    }
+  }
+
+  protected firstUpdated(_changedProperties: PropertyValues): void {
     const bagManager = CreateBagManager(true);
     ColorPalettesSingleton.InitializeColorPalettesInBag(bagManager);
-
     this.colorPalettesBag = bagManager.getBag<ColorPalette>(ColorPalettesKey)!;
     this.colorPalettesBag?.onPopulated(this.onPopulated.bind(this));
     this.colorPalettesBag?.onAllChanges(this.onChange.bind(this));
 
+    document.addEventListener(
+      AskModuleForStateEvent,
+      this._sendTabState.bind(this)
+    );
+
+    // @ts-ignore
+    document.addEventListener(
+      RequestUpdateEvent,
+      this.listenToUpdates.bind(this)
+    );
+
     this.modeBag = bagManager.getBag<ColorMode>(DarkModeKey)!;
+    this._currentColorMode = this.modeBag.get(DarkModeKey)!;
+    this.modeBag.subscribe(DarkModeKey, this.handleModeChange.bind(this));
     this.changeCustomSteps();
+  }
+
+  handleModeChange(mode: ColorMode | undefined) {
+    this._currentColorMode = mode!;
+    this._sendTabState();
   }
 
   private changeCustomSteps() {
     const mode = this.modeBag.get(DarkModeKey);
+
     this.customPaletteStep = mode === 'Light' ? 'LightMode' : 'DarkMode';
   }
 
   private onChange(key: string) {
     const newCP = this.colorPalettesBag.get(key)!;
+
+    console.log(this.renderMode, this.bagManager);
 
     if (
       !this.colorPalettes.map((cp: ColorPalette) => cp.id).includes(newCP.id)
@@ -179,7 +231,7 @@ export class ThemeSwitcherElement extends LitElement {
       this.selectedColorPalette = newCP;
     }
 
-    this._updateTab();
+    this._sendTabState();
     this.requestUpdate();
   }
 
@@ -197,18 +249,58 @@ export class ThemeSwitcherElement extends LitElement {
 
     // ! tab has to render before we update it! maybe we should ask for it
     setTimeout(() => {
-      this._updateTab();
+      this._sendTabState();
     }, 100);
 
     this.requestUpdate();
   }
 
-  private _updateTab() {
-    sendEvent<UpdateTabMenuType<ColorPalette>>(this, UpdateTabMenuEvent, {
-      menuOptions: this.colorPalettes,
-      selectedMenuOptions: [this.selectedColorPalette],
+  private toggleSidePanelSideEffects() {
+    this.module.tab?.toggleTabInDrawer();
+    sendGlobalEvent<UPDATE_MODULE_EVENT_TYPE>(UPDATE_MODULE_EVENT, this.module);
+  }
+
+  private toggleSidePanel(): BookeraApiAction | undefined {
+    return {
+      type: 'BookeraApi',
+      module: this.module,
+      sideEffects: this.toggleSidePanelSideEffects,
+      bookeraApi: 'toggle-side-panel-event',
+      text: 'Toggle side panel',
+    };
+  }
+
+  private _sendTabState() {
+    if (!this.module.tab?.isAppended) return;
+
+    if (this.module.tab.isToggledInDrawer) {
+      console.log(
+        'when you make the panels stateful, they have to ask for state'
+      );
+      // sendEvent<OpenSidePanelEventType>(this, OPEN_SIDE_PANEL_EVENT, {
+      //   module: this.module,
+      //   position: this.module.tab.position,
+      // });
+    }
+
+    sendEvent<UpdateTabMenuType<ColorMode>>(this, UpdateTabMenuEvent, {
+      menuOptions: extractMenuOptions(this.colorPalettes),
+      selectedMenuOptions: extractMenuOptions([this.selectedColorPalette!]),
       handleSelect: handleSelectColorPaletteFromId,
       tabId: this.module?.tab?.id!,
+      tabMenuActions: [
+        {
+          eventHandler: DarkModeSingleton.SetAppliedMode,
+          state: DarkMode.GetColorMode(),
+          newState: DarkMode.GetColorMode() === 'Dark' ? 'Light' : 'Dark',
+          conditional: 'ConditionalIcon',
+          conditionalState: DarkMode.SetIconFromColorMode(
+            DarkMode.GetColorMode()
+          ),
+          type: 'Action',
+        },
+        this.toggleSidePanel(),
+      ],
     });
   }
 
@@ -433,49 +525,67 @@ export class ThemeSwitcherElement extends LitElement {
   }
   // style colors inside
 
+  private handleTab() {
+    if (this.module.tab?.isAppended) {
+      return html`
+        <sl-tooltip content="Remove tab from quick settings">
+          <sl-icon-button
+            name="layout-sidebar"
+            class="icon-button"
+            @click=${() => {
+              this.module.tab?.removeTab();
+              sendEvent<UPDATE_MODULE_EVENT_TYPE>(
+                this,
+                UPDATE_MODULE_EVENT,
+                this.module
+              );
+              notify('removed tab!', 'success', null, 3000);
+              this.requestUpdate();
+            }}
+          ></sl-icon-button>
+        </sl-tooltip>
+      `;
+    }
+
+    return html`
+      <sl-tooltip content="Add theme switcher settings as tab">
+        <sl-icon-button
+          name="layout-sidebar"
+          class="icon-button"
+          @click=${() => {
+            if (!this.module.tab?.isAppended) {
+              this.module.tab?.appendTab();
+              ModuleRegistry.UpdateModule(this.module);
+              this._sendTabState();
+              notify(
+                'Successfully inserted tab on left panel',
+                'success',
+                null,
+                3000
+              );
+            } else {
+              notify(
+                `${this.title} already exists as a tab`,
+                'warning',
+                null,
+                3000
+              );
+            }
+
+            this.requestUpdate();
+          }}
+        ></sl-icon-button>
+      </sl-tooltip>
+    `;
+  }
+
   renderInPanel() {
     return html`
-      <div>
+      <div class="panel-container">
         <div class="title-box">
           ${this.renderThemeButton()}
-
           <h4>${this.title}</h4>
-          <sl-tooltip content="Put quick theme switcher settings on sidebar">
-            <sl-icon-button
-              name="layout-sidebar"
-              class="icon-button"
-              @click=${() => {
-                // ModuleRegistry.UpdateModule(this.module);
-                const status = TabsSingleton.AddToLeftTabs(
-                  this.bagManager,
-                  this.module.tab!
-                );
-                if (status) {
-                  this.module.tab?.appendTab();
-                  sendEvent<UPDATE_MODULE_EVENT_TYPE>(
-                    this,
-                    UPDATE_MODULE_EVENT,
-                    this.module
-                  );
-                  notify(
-                    'Successfully inserted tab on left panel',
-                    'success',
-                    null,
-                    3000
-                  );
-                } else {
-                  notify(
-                    `${this.title} already exists as a tab`,
-                    'warning',
-                    null,
-                    3000
-                  );
-                }
-
-                this.requestUpdate();
-              }}
-            ></sl-icon-button>
-          </sl-tooltip>
+          ${this.handleTab()}
         </div>
         ${this.createSection(
           'System Color Palettes',
@@ -548,6 +658,8 @@ export class ThemeSwitcherElement extends LitElement {
   render() {
     switch (this.renderMode) {
       case 'renderInPanel':
+        return this.renderInPanel();
+      case 'renderInSidePanel':
         return this.renderInPanel();
     }
   }

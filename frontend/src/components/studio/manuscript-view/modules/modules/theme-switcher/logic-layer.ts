@@ -1,6 +1,10 @@
 import { SlMenuItem } from '@shoelace-style/shoelace';
 import { notify } from '../../../../../../lib/model/lit';
-import { doesClickContainElement } from '../../../../../../lib/model/util';
+import {
+  doesClickContainElement,
+  sendEvent,
+  sendGlobalEvent,
+} from '../../../../../../lib/model/util';
 import {
   PrimaryColor,
   BaseColor,
@@ -126,16 +130,9 @@ export function handleCustomPaletteForm(this: ThemeSwitcherElement, e: Event) {
   notify(`new color palette ${name} added 💅`, 'success', '');
   this.createColorPaletteMode = false;
   this.selectedColorPalette = newPalette;
-  ColorPalettesSingleton.NewColorPalette(this.bagManager, newPalette);
-  // set color
-  ColorPalette.SelectColorPalette(
-    this.selectedColorPalette,
-    DarkMode.GetColorMode()
-  );
-  ColorPalettesSingleton.SetSelectedColorPalette(
-    this.bagManager,
-    this.selectedColorPalette
-  );
+  this.colorPalettes.push(this.selectedColorPalette);
+  this.requestUpdate();
+  ColorPalettesSingleton.NewColorPaletteAndSelect(this.bagManager, newPalette);
 }
 
 function _handleSelectInternals(
@@ -207,6 +204,9 @@ export function handleSubmitSystemColorPalette(
     primaryColor as string,
     name as string
   );
-  ColorPalettesSingleton.NewColorPalette(this.bagManager, newPalette);
+
+  this.selectedColorPalette = newPalette;
+  this.colorPalettes.push(this.selectedColorPalette);
+  ColorPalettesSingleton.NewColorPaletteAndSelect(this.bagManager, newPalette);
   this.systemColorPaletteMode = false;
 }

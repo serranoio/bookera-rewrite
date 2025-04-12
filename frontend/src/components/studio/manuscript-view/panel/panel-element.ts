@@ -9,10 +9,7 @@ import {
   genUUID,
   sendEvent,
 } from '../../../../lib/model/util';
-import {
-  CLOSE_SIDE_PANEL_EVENT,
-  PANEL_RESIZE_EVENT,
-} from './panel-handle/panel-handle-element';
+import { PANEL_RESIZE_EVENT } from './panel-handle/panel-handle-element';
 import { PanelSide } from '../side-panel/panel-bar-element/panel-bar-element';
 import { Point } from 'chart.js';
 import { NewPanelEventType } from '../../../../lib/model/site';
@@ -22,6 +19,7 @@ import '../modules/modules/theme-switcher/theme-switcher-element';
 import { ThemeSwitcherElement } from '../modules/modules/theme-switcher/theme-switcher-element';
 import {
   CLOSE_PANEL_EVENT,
+  CLOSE_SIDE_PANEL_EVENT,
   IS_DRAGGING_TAB_EVENT,
   IsDraggingTabEvent,
   NEW_TAB_EVENT,

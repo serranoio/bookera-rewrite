@@ -1,5 +1,9 @@
-import { css } from "lit";
+import { css } from 'lit';
 export default css`
+  .scrollable-menu {
+    max-height: 10rem;
+    overflow-y: scroll;
+  }
   .side-panel {
     width: 3rem;
     height: 100%;

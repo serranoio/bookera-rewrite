@@ -7,6 +7,6 @@ export default css`
   }
 
   .settings-padding {
-    padding: var(--spacingSmall) var(--spacing);
+    /* padding: var(--spacingSmall) var(--spacing); */
   }
 `;

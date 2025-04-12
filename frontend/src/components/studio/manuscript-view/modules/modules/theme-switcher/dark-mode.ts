@@ -75,7 +75,7 @@ export class DarkMode extends LitElement {
       this.colorMode = 'Light';
     }
 
-    DarkModeSingleton.SetAppliedMode(this.bagManager, this.colorMode);
+    DarkModeSingleton.SetAppliedMode(this.colorMode);
   }
 
   private _switchColorMode() {
@@ -85,7 +85,7 @@ export class DarkMode extends LitElement {
       this.colorMode.toLowerCase()
     );
     this.requestUpdate();
-    DarkModeSingleton.SetAppliedMode(this.bagManager, this.colorMode);
+    DarkModeSingleton.SetAppliedMode(this.colorMode);
   }
 
   static GetColorMode(): ColorMode {
@@ -98,13 +98,18 @@ export class DarkMode extends LitElement {
   onChange(key: string, value: ColorMode | undefined) {
     if (key === DarkModeKey) {
       this.colorMode = value as ColorMode;
+      DarkMode.SetIconFromColorMode(this.colorMode);
     }
+  }
+
+  static SetIconFromColorMode(colorMode: ColorMode): 'moon' | 'sun' {
+    return colorMode === 'Light' ? 'moon' : 'sun';
   }
 
   render() {
     return html`
       <sl-icon-button
-        name=${this.colorMode === 'Light' ? 'moon' : 'sun'}
+        name=${DarkMode.SetIconFromColorMode(this.colorMode)}
         @click=${this._switchColorMode}
       >
       </sl-icon-button>

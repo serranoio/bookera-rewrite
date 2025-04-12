@@ -39,7 +39,6 @@ import {
   Tab,
   TabsBag,
   TabsBagKey,
-  TabsSingleton,
 } from '../lib/model/tab';
 import {
   CLOSE_PANEL_EVENT,
@@ -78,9 +77,6 @@ export class ManuscriptElement extends LitElement {
 
   @state()
   isSidePanelOpened: boolean = false;
-
-  @state()
-  tabsSingleton: TabsSingleton = new TabsSingleton();
 
   closePanelEvent(e: any) {
     this.requestUpdate();
@@ -356,7 +352,6 @@ export class ManuscriptElement extends LitElement {
     addEventListener('resize', this.changePanelsToPercentage.bind(this));
 
     const bagManager = CreateBagManager(true);
-    TabsSingleton.CreateBag(bagManager);
     ModuleRegistry.InitializeModulesInBag(bagManager);
     const moduleRegistryBag = bagManager.getBag<Module>(ModuleRegistryKey);
 
@@ -364,9 +359,7 @@ export class ManuscriptElement extends LitElement {
   }
 
   onModuleRegistryPopulated(bag: Map<string, Module> | undefined) {
-    // * from here, we initiatlize tabsBag
-    const bagManager = CreateBagManager(true);
-    TabsSingleton.InitializeTabsInBag(bagManager, bag!);
+    // todo: nothing to do
   }
 
   @state()

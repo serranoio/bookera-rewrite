@@ -68,13 +68,9 @@ export const calendarModule = new Module(
 export const themeSwitcherModule = new Module(
   DEFAULT_VERSION,
   'Theme Switcher',
-  new Tab(
-    'Theme Switcher',
-    'palette',
-    '',
-    'theme-switcher-element',
-    'left'
-  ).removeTab(),
+  new Tab('Theme Switcher', 'palette', '', 'theme-switcher-element', 'left')
+    .removeTab()
+    .setTabType('Menu'),
   genShortID(10),
   true,
   ThemeSwitcherElement

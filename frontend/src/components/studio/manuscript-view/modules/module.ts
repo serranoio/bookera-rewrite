@@ -8,6 +8,11 @@ import { Tab } from '../../../../lib/model/tab';
 export const UPDATE_MODULE_EVENT = 'update-module-event';
 export type UPDATE_MODULE_EVENT_TYPE = Module;
 
+export const RequestUpdateEvent = 'request-update';
+export interface RequestUpdateEventType {
+  moduleId: string;
+}
+
 // modules
 export const ModuleRegistryClasses = {};
 

@@ -1,10 +1,12 @@
-import { css } from "lit";
+import { css } from 'lit';
 export default css`
   .side-panel-drawer-element {
     position: relative;
     height: 100%;
     background-color: var(--slate-300);
     /* transition: wi0.2s; */
+  }
+  .panel-container {
   }
 
   .handle-box {

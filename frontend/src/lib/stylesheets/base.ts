@@ -1,6 +1,20 @@
 import { css } from 'lit';
 
 export default css`
+  *::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  /* Track */
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Handle */
+  *::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 20px;
+  }
   :host {
     padding: 0;
     margin: 0;

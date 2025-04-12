@@ -195,7 +195,20 @@
         font-weight: 400;
         font-style: normal;
       }
+      *::-webkit-scrollbar {
+    width: 6px;
+  }
 
+  /* Track */
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Handle */
+  *::-webkit-scrollbar-thumb {
+    background: var(--slate-400);
+    border-radius: 20px;
+  }
       /* .fr-quick-insert {
               display: none !important;
             } */

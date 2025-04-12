@@ -1,16 +1,18 @@
 import { ColorMode } from './theme-switcher-element';
 import { ColorPalette, ColorPalettesSingleton } from './stateful';
-import { BagManager, Bag } from '@pb33f/saddlebag';
+import { BagManager, Bag, CreateBagManager } from '@pb33f/saddlebag';
 
 export const DarkModeKey = 'dark-mode-key';
 
 export class DarkModeSingleton {
   static DarkModeKey: ColorMode = 'Light'; // should be system
 
-  static SetAppliedMode(bagManager: BagManager, colorMode: ColorMode) {
+  static SetAppliedMode(colorMode: ColorMode) {
+    const bagManager = CreateBagManager(true);
     const bag = bagManager.getBag(DarkModeKey);
 
     bag?.set(DarkModeKey, colorMode);
+
     localStorage.setItem(DarkModeKey, colorMode);
     const selectedPalette =
       ColorPalettesSingleton.GetSelectedColorPalette(bagManager);

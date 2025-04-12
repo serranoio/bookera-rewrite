@@ -1,14 +1,18 @@
-import { LitElement, html, css, PropertyValueMap } from "lit";
-import { customElement, property, query, state } from "lit/decorators.js";
-import panelHandleElementStyles from "./panel-handle-element.styles";
-import base from "../../../../../lib/stylesheets/base";
-import { addStyles, sendEvent } from "../../../../../lib/model/util";
-import { PanelSide } from "../../side-panel/panel-bar-element/panel-bar-element";
-import { OPEN_SIDE_PANEL_EVENT } from "../../../../../lib/model/panel";
+import { LitElement, html, css, PropertyValueMap } from 'lit';
+import { customElement, property, query, state } from 'lit/decorators.js';
+import panelHandleElementStyles from './panel-handle-element.styles';
+import base from '../../../../../lib/stylesheets/base';
+import { addStyles, sendEvent } from '../../../../../lib/model/util';
+import { PanelSide } from '../../side-panel/panel-bar-element/panel-bar-element';
+import {
+  CLOSE_SIDE_PANEL_EVENT,
+  CloseSidePanelEventType,
+  OPEN_SIDE_PANEL_EVENT,
+} from '../../../../../lib/model/panel';
 
-export const PANEL_RESIZE_EVENT = "panel-resize-event";
+export const PANEL_RESIZE_EVENT = 'panel-resize-event';
 
-export const MINIMUM_WIDTH_HIT = "MINIMUM_WIDTH_HIT";
+export const MINIMUM_WIDTH_HIT = 'MINIMUM_WIDTH_HIT';
 
 export interface PanelResizeEventDetail {
   panelID: string;
@@ -16,9 +20,7 @@ export interface PanelResizeEventDetail {
   width: number;
 }
 
-export const CLOSE_SIDE_PANEL_EVENT = "close-side-panel-event";
-
-@customElement("panel-handle-element")
+@customElement('panel-handle-element')
 export class PanelHandleElement extends LitElement {
   static styles = [panelHandleElementStyles, base];
 
@@ -47,7 +49,7 @@ export class PanelHandleElement extends LitElement {
   previousWidth: number = -1;
 
   @property()
-  panelID: PanelSide = "left";
+  panelID: PanelSide = 'left';
 
   @state()
   atMinimumWidth = false;
@@ -66,14 +68,14 @@ export class PanelHandleElement extends LitElement {
 
     // @ts-ignore
 
-    document.addEventListener("pointerup", () => {
+    document.addEventListener('pointerup', () => {
       this.isClicked = false;
-      document.body.style.cursor = "default";
+      document.body.style.cursor = 'default';
     });
-    document.addEventListener("pointermove", (e) => {
+    document.addEventListener('pointermove', (e) => {
       if (!this.isClicked) return;
 
-      document.body.style.cursor = "col-resize";
+      document.body.style.cursor = 'col-resize';
 
       const haveResetWidthOverride =
         this.resetWidthOverride === -1 ? false : true;
@@ -98,13 +100,13 @@ export class PanelHandleElement extends LitElement {
               this.closedDrawerWidth &&
             !this.isClosed
           ) {
-            sendEvent(this, CLOSE_SIDE_PANEL_EVENT, {
-              panelID: this.panelID,
-              closedDrawerWidth: this.closedDrawerWidth,
-            });
             this.isClosed = true;
           }
 
+          sendEvent<CloseSidePanelEventType>(this, CLOSE_SIDE_PANEL_EVENT, {
+            position: this.panelID,
+            closedDrawerWidth: this.closedDrawerWidth,
+          });
           this.parentElement!.style.width = `${this.closedDrawerWidth}`;
           this.requestUpdate();
         }
@@ -156,18 +158,18 @@ export class PanelHandleElement extends LitElement {
     _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ): void {
     if (this.left) {
-      this.style.right = "100%";
-      this.style.translateX = "-50%";
+      this.style.right = '100%';
+      this.style.translateX = '-50%';
       this.handleElementStyles = {
-        left: "50%",
-        transform: "translateX(-50%)",
+        left: '50%',
+        transform: 'translateX(-50%)',
       };
     } else if (this.right) {
-      this.style.right = "0";
-      this.style.translateX = "50%";
+      this.style.right = '0';
+      this.style.translateX = '50%';
       this.handleElementStyles = {
-        right: "50%",
-        transform: "translateX(50%)",
+        right: '50%',
+        transform: 'translateX(50%)',
       };
     } else {
     }
@@ -192,6 +194,6 @@ export class PanelHandleElement extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    "panel-handle-element": PanelHandleElement;
+    'panel-handle-element': PanelHandleElement;
   }
 }

@@ -1,4 +1,4 @@
-import { LitElement, html, css, TemplateResult } from 'lit';
+import { LitElement, html, css, TemplateResult, PropertyValues } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { PanelBarPosition } from '../../side-panel-element';
 import base from '../../../../../../lib/stylesheets/base';
@@ -6,37 +6,39 @@ import tabElementStyles from './tab-element.styles';
 import { Tab, UPDATE_TAB_EVENT } from '../../../../../../lib/model/tab';
 import { BagManager } from '@pb33f/saddlebag';
 import { SlSelect, SlSelectEvent } from '@shoelace-style/shoelace';
+import {
+  HandleSelectType,
+  MenuOption,
+  renderTabMenu,
+  TabMenuAction,
+  UpdateTabMenuEvent,
+  UpdateTabMenuType,
+} from './tabMenu';
+import { sendEvent } from '../../../../../../lib/model/util';
 
-export const UpdateTabMenuEvent = 'update-menu-event';
-export interface UpdateTabMenuType<MenuOptionType = any> {
-  menuOptions: MenuOptionType[];
-  selectedMenuOptions: any[];
-  handleSelect: any;
-  tabId: string;
-}
+export const AskModuleForStateEvent = 'ask-module-for-state-event';
 
 @customElement('tab-element')
 export class TabElement extends LitElement {
   static styles = [base];
 
   @property()
-  tab: Tab;
+  tab!: Tab;
+
+  @property()
+  selectedTab: Tab | null = null;
 
   @state()
-  _selectedTab: Tab | null = null;
+  menuOptions: MenuOption[] = [];
 
   @state()
-  menuOptions: any[] = [];
+  selectedMenuOptions: MenuOption[] = [];
 
   @state()
-  selectedMenuOptions: any = [];
+  handleSelect!: HandleSelectType;
 
   @state()
-  handleSelect: (id: string) => void;
-
-  set selectedTab(value: Tab) {
-    this._selectedTab = value;
-  }
+  tabMenuActions: TabMenuAction<any>[] = [];
 
   @property()
   panelBarPosition!: PanelBarPosition;
@@ -54,8 +56,15 @@ export class TabElement extends LitElement {
       this.updateMenuEvent.bind(this)
     );
   }
+  protected firstUpdated(_changedProperties: PropertyValues): void {
+    this.tab = Object.assign(new Tab(), this.tab);
 
-  updateMenuEvent(e: CustomEvent<UpdateTabMenuType>) {
+    if (this.tab.tabType === 'Menu') {
+      sendEvent(this, AskModuleForStateEvent);
+    }
+  }
+
+  updateMenuEvent(e: CustomEvent<UpdateTabMenuType<TabMenuAction<any>>>) {
     if (e.detail.tabId !== this.tab.id) {
       return;
     }
@@ -63,43 +72,13 @@ export class TabElement extends LitElement {
     this.selectedMenuOptions = e.detail.selectedMenuOptions;
     this.menuOptions = e.detail.menuOptions;
     this.handleSelect = e.detail.handleSelect;
-    console.log(this.menuOptions);
+    this.tabMenuActions = e.detail.tabMenuActions;
     this.requestUpdate();
   }
 
   render() {
-    console.log(this.menuOptions);
     if (this.menuOptions) {
-      return html`
-        <div class=${`${this.panelBarPosition}-div`}>
-          <sl-tooltip content="${this.tab.name!}">
-            <sl-dropdown>
-              <sl-icon-button
-                slot="trigger"
-                data-value=${this.tab.value!}
-                class="tab-button ${this._selectedTab?.value === this.tab.value
-                  ? 'active'
-                  : ''}"
-                name=${this.tab.value!}
-                >${this.tab.name}</sl-icon-button
-              >
-              <sl-menu
-                @sl-select=${(e: SlSelectEvent) => {
-                  const id: string = e.detail.item.value;
-
-                  this.handleSelect(id);
-                }}
-              >
-                ${this.menuOptions.map((menuOption) => {
-                  return html`<sl-menu-item value=${menuOption.id}
-                    >${menuOption.name}</sl-menu-item
-                  >`;
-                })}
-              </sl-menu>
-            </sl-dropdown>
-          </sl-tooltip>
-        </div>
-      `;
+      return renderTabMenu.bind(this)();
     }
 
     return html`
@@ -107,7 +86,7 @@ export class TabElement extends LitElement {
         <sl-tooltip content="${this.tab.name}">
           <sl-icon-button
             data-value=${this.tab.value}
-            class="tab-button ${this._selectedTab?.value === this.tab.value
+            class="tab-button ${this.selectedTab?.value === this.tab.value
               ? 'active'
               : ''}"
             name=${this.tab.value}

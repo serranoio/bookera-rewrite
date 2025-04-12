@@ -15,6 +15,7 @@ import {
 } from './core-modules';
 import { z } from 'zod';
 import { RenderMode } from './modules/theme-switcher/theme-switcher-element';
+import { Tab, TabPosition } from '../../../../lib/model/tab';
 
 export type ModuleConstructorSchema = (
   renderMode: RenderMode,
@@ -41,7 +42,7 @@ export class ModuleRegistry {
     // @ts-ignore
     document.addEventListener(
       UPDATE_MODULE_EVENT,
-      ModuleRegistry.UpdateModule.bind(this)
+      ModuleRegistry.UpdateModuleEvent.bind(this)
     );
   }
 
@@ -54,10 +55,17 @@ export class ModuleRegistry {
     );
   }
 
-  static UpdateModule(moduleEvent: CustomEvent<Module>) {
+  static UpdateModule(module: Module) {
     const registryBag = ModuleRegistry.GetModuleBag();
+    registryBag.set(module.id!, module);
 
-    registryBag.set(module.id!, moduleEvent.detail);
+    ModuleRegistry.setLF(registryBag);
+  }
+
+  static UpdateModuleEvent(moduleEvent: CustomEvent<Module>) {
+    const registryBag = ModuleRegistry.GetModuleBag();
+    const module = moduleEvent.detail;
+    registryBag.set(module.id!, module);
 
     ModuleRegistry.setLF(registryBag);
   }
@@ -71,6 +79,27 @@ export class ModuleRegistry {
     return Array.from(bag.values()).filter((module: Module) => {
       return module.hasSettings;
     });
+  }
+
+  // * called after onPopulated
+  static GetTabsWithPosition(
+    bag: Map<string, Module>,
+    position: TabPosition
+  ): Tab[] {
+    return Array.from(bag.values())
+      .filter((module: Module) => {
+        module.tab = Object.assign(new Tab(), module.tab);
+        module = Object.assign(new Module(), module);
+
+        if (!module.tab?.isAppended) return false;
+
+        if (module.tab?.position === position) {
+          return true;
+        }
+
+        return false;
+      })
+      .map((module: Module) => module.tab!);
   }
 
   static async InitializeModulesInBag(

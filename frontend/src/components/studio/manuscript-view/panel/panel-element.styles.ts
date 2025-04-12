@@ -8,7 +8,7 @@ export default css`
     background-color: var(--slate-50);
     height: 100%;
     position: relative;
-    padding: 0 2px;
+    /* padding: 0 2px; */
   }
 
   .content-container {

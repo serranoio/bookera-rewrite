@@ -1,32 +1,32 @@
-import { SlMenuItem } from "@shoelace-style/shoelace";
-import { styleMap } from "lit/directives/style-map.js";
+import { SlMenuItem } from '@shoelace-style/shoelace';
+import { styleMap } from 'lit/directives/style-map.js';
 
 function convertNumberMonthToStringMonth(month: number) {
   switch (month) {
     case 1:
-      return "Jan";
+      return 'Jan';
     case 2:
-      return "Feb";
+      return 'Feb';
     case 3:
-      return "Mar";
+      return 'Mar';
     case 4:
-      return "Apr";
+      return 'Apr';
     case 5:
-      return "May";
+      return 'May';
     case 6:
-      return "Jun";
+      return 'Jun';
     case 7:
-      return "Jul";
+      return 'Jul';
     case 8:
-      return "Aug";
+      return 'Aug';
     case 9:
-      return "Sep";
+      return 'Sep';
     case 10:
-      return "Oct";
+      return 'Oct';
     case 11:
-      return "Nov";
+      return 'Nov';
     case 12:
-      return "Dec";
+      return 'Dec';
   }
 }
 
@@ -34,9 +34,9 @@ export function formatDate(date) {
   date = new Date(date);
 
   var month = date.getMonth() + 1,
-    day = "" + date.getDate(),
-    hour = "" + date.getHours(),
-    minute = "" + date.getMinutes();
+    day = '' + date.getDate(),
+    hour = '' + date.getHours(),
+    minute = '' + date.getMinutes();
 
   return `${convertNumberMonthToStringMonth(month)} ${day} ${hour}:${minute}`;
 }
@@ -80,12 +80,12 @@ export const changeArrayOrderBasedOnOrder = (
 };
 
 export const acceptedImageTypes = [
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".gif",
-  ".svg",
-  ".webp",
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.svg',
+  '.webp',
 ];
 
 export const intersection = (a: any, b: any) => {
@@ -98,7 +98,7 @@ export const intersection = (a: any, b: any) => {
 
 export const dashedCase = (item: string): string => {
   // @ts-ignore
-  return item.replaceAll(" ", "-").toLowerCase();
+  return item.replaceAll(' ', '-').toLowerCase();
 };
 
 export const doesClickContainElement = <T = HTMLElement>(
@@ -110,7 +110,7 @@ export const doesClickContainElement = <T = HTMLElement>(
 ): T | null => {
   if (config.className) {
     config.className =
-      config.className[0] === "." ? config.className : `.${config.className}`;
+      config.className[0] === '.' ? config.className : `.${config.className}`;
   }
 
   if (
@@ -131,7 +131,11 @@ export const doesClickContainElement = <T = HTMLElement>(
   return null;
 };
 
-export function sendEvent<Type>(that: any, eventName: string, detail: Type) {
+export function sendGlobalEvent<Type>(eventName: string, detail?: Type) {
+  sendEvent(document, eventName, detail);
+}
+
+export function sendEvent<Type>(that: any, eventName: string, detail?: Type) {
   that.dispatchEvent(
     new CustomEvent<Type>(eventName, {
       composed: true,
@@ -146,13 +150,13 @@ export const addStyles = (styles: any) => {
 };
 
 export function genUUID(): string {
-  let uuid: string = "",
+  let uuid: string = '',
     i: number,
     random: number;
   for (i = 0; i < 32; i++) {
     random = (Math.random() * 16) | 0;
     if (i === 8 || i === 12 || i === 16 || i === 20) {
-      uuid += "-";
+      uuid += '-';
     }
     uuid += (i === 12 ? 4 : i === 16 ? (random & 3) | 8 : random).toString(16);
   }
@@ -161,24 +165,24 @@ export function genUUID(): string {
 
 export function genShortID(length: number): string {
   function randomString(length: number, chars: string) {
-    var result = "";
+    var result = '';
     for (var i = length; i > 0; --i)
       result += chars[Math.floor(Math.random() * chars.length)];
     return result;
   }
   return randomString(
     length,
-    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
   );
 }
 
-export const BOOKERA_STUDIO: string = "Studio";
+export const BOOKERA_STUDIO: string = 'Studio';
 export const MANUSCRIPT: string =
-  "/" + BOOKERA_STUDIO.toLocaleLowerCase() + "/manuscript";
+  '/' + BOOKERA_STUDIO.toLocaleLowerCase() + '/manuscript';
 
-export const BACK_TO_STUDIO: string = "<- Studio";
+export const BACK_TO_STUDIO: string = '<- Studio';
 
-export const productItems: string[] = ["Catalog", BOOKERA_STUDIO];
+export const productItems: string[] = ['Catalog', BOOKERA_STUDIO];
 
 export const StudioProductItems: string[] = [BACK_TO_STUDIO];
 
@@ -188,17 +192,17 @@ export const companyItems: string[] = [
 ];
 
 export const titleCase = (item: string | string[]): string => {
-  if (typeof item === "string") {
-    return item.split(/(?=[A-Z])/).join(" ");
+  if (typeof item === 'string') {
+    return item.split(/(?=[A-Z])/).join(' ');
   }
   // @ts-ignore
   return item
     .map((char) => char.charAt(0).toUpperCase() + char.slice(1))
-    .join(" ");
+    .join(' ');
 };
 
 export const joinedTitleCase = (item: string) => {
-  return item.split(" ").join("");
+  return item.split(' ').join('');
 };
 
 export const routes: string[] = [
