@@ -4,7 +4,7 @@ import { html } from 'lit';
 
 @customElement('pomodoro-element')
 export class PomodoroElement extends ModuleElement {
-  renderInPanel() {
+  renderInSettings() {
     return html`<div>Pomodoro Panel Content</div>`;
   }
 
@@ -13,8 +13,8 @@ export class PomodoroElement extends ModuleElement {
   }
 
   render() {
-    return this.renderMode === 'renderInPanel'
-      ? this.renderInPanel()
+    return this.renderMode === 'renderInSettings'
+      ? this.renderInSettings()
       : this.renderInSidePanel();
   }
 

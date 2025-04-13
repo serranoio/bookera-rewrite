@@ -8,7 +8,6 @@ import { Tab, TabPosition } from '../../../../lib/model/tab';
 import { themeSwitcherModule } from './core-modules/theme-switcher/src/module';
 import { calendarModule } from './core-modules/calendar/src/module';
 import { extensionsModule } from './core-modules/extensions/src/module';
-import { openPanelModule } from './core-modules/open-panel/src/module';
 import { openSidePanelModule } from './core-modules/open-side-panel/src/module';
 import { outlineModule } from './core-modules/outline/src/module';
 import { pomodoroModule } from './core-modules/pomodoro/src/module';
@@ -29,7 +28,6 @@ export class ModuleRegistry {
     searchModule,
     extensionsModule,
     versionsModule,
-    openPanelModule,
     openSidePanelModule,
     themeSwitcherModule,
     pomodoroModule,
@@ -58,6 +56,16 @@ export class ModuleRegistry {
     registryBag.set(module.id!, module);
 
     ModuleRegistry.setLF(registryBag);
+  }
+
+  static GetModuleById(id: string): Module | undefined {
+    const registryBag = ModuleRegistry.GetModuleBag();
+    const module = registryBag.get(id);
+    if (!module) {
+      console.warn(`Module with id ${id} not found`);
+      return undefined;
+    }
+    return module;
   }
 
   static UpdateModuleEvent(moduleEvent: CustomEvent<Module>) {

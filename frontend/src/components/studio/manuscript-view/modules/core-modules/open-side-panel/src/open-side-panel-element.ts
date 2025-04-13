@@ -4,7 +4,7 @@ import { html } from 'lit';
 
 @customElement('open-side-panel-element')
 export class OpenSidePanelElement extends ModuleElement {
-  renderInPanel() {
+  renderInSettings() {
     return html`<div>Open Side Panel Content</div>`;
   }
 
@@ -13,8 +13,8 @@ export class OpenSidePanelElement extends ModuleElement {
   }
 
   render() {
-    return this.renderMode === 'renderInPanel'
-      ? this.renderInPanel()
+    return this.renderMode === 'renderInSettings'
+      ? this.renderInSettings()
       : this.renderInSidePanel();
   }
 

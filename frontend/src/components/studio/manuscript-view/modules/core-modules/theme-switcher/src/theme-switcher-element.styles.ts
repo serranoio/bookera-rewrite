@@ -7,6 +7,10 @@ export default css`
     position: relative;
   }
 
+  .dark-mode-padding {
+    padding: var(--spacingSmall) 0;
+  }
+
   .button-container {
     gap: var(--spacingXSmall);
   }

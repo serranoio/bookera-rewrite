@@ -17,7 +17,7 @@ export const DEFAULT_VERSION = '0.0.1';
 
 // modules
 export const ModuleRegistryClasses = {};
-
+export type RenderMode = 'renderInSettings' | 'renderInSidePanel';
 // extensions are just extended functionality from the core system, modules
 export class Module {
   version?: string;
@@ -44,17 +44,17 @@ export class Module {
       ModuleRegistryClasses[this.getConstructorType()] = constructorType;
     }
 
+    if (id) {
+      this.id = id;
+    } else {
+      this.id = genShortID(10);
+    }
+
     if (tab) {
       this.tab = tab;
     }
     if (tab && id) {
       this.tab!.id = id;
-    }
-
-    if (id) {
-      this.id = id;
-    } else {
-      this.id = genShortID(10);
     }
 
     if (hasSettings) {

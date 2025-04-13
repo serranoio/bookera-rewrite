@@ -3,7 +3,6 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import themeSwitcherElementStyles from './theme-switcher-element.styles';
 import base from '../../../../../../../lib/stylesheets/base';
 
-export type RenderMode = 'renderInPanel' | 'renderInSidePanel';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.20.0/cdn/components/color-picker/color-picker.js';
 import {
   BaseColor,
@@ -69,8 +68,8 @@ const CustomColorStepMode = {
 type CustomColorStep = keyof typeof CustomColorStepMode;
 // the theme switcher should always have the same ID no matter what, across every single app
 // the tab will follow
-@customElement('theme-switcher-element')
-export class ThemeSwitcherElement extends ModuleElement {
+@customElement('themes-element')
+export class ThemesElement extends ModuleElement {
   static styles = [themeSwitcherElementStyles, base, moduleElementStyle];
 
   @query('#color-selector') colorSelect!: SlSelect;
@@ -143,7 +142,6 @@ export class ThemeSwitcherElement extends ModuleElement {
 
   private handleModeChange(mode: ColorMode | undefined) {
     this._currentColorMode = mode!;
-    this.sendTabState();
   }
 
   private changeCustomSteps() {
@@ -164,7 +162,6 @@ export class ThemeSwitcherElement extends ModuleElement {
       this.selectedColorPalette = newCP;
     }
 
-    this.sendTabState();
     this.requestUpdate();
   }
 
@@ -181,48 +178,7 @@ export class ThemeSwitcherElement extends ModuleElement {
       });
 
     // ! tab has to render before we update it! maybe we should ask for it
-    setTimeout(() => {
-      this.sendTabState();
-    }, 100);
-
     this.requestUpdate();
-  }
-
-  private toggleSidePanelSideEffects() {
-    this.module.tab?.toggleTabInDrawer();
-    sendGlobalEvent<UPDATE_MODULE_EVENT_TYPE>(UPDATE_MODULE_EVENT, this.module);
-  }
-
-  private toggleSidePanel(): BookeraApiAction | undefined {
-    return {
-      type: 'BookeraApi',
-      module: this.module,
-      sideEffects: this.toggleSidePanelSideEffects,
-      bookeraApi: 'toggle-side-panel-event',
-      text: 'Toggle side panel',
-    };
-  }
-
-  protected sendTabState() {
-    this.sendData({
-      menuOptions: extractMenuOptions(this.colorPalettes),
-      selectedMenuOptions: extractMenuOptions([this.selectedColorPalette!]),
-      handleSelect: handleSelectColorPaletteFromId,
-      tabId: this.module?.tab?.id!,
-      tabMenuActions: [
-        {
-          eventHandler: DarkModeSingleton.SetAppliedMode,
-          state: DarkMode.GetColorMode(),
-          newState: DarkMode.GetColorMode() === 'Dark' ? 'Light' : 'Dark',
-          conditional: 'ConditionalIcon',
-          conditionalState: DarkMode.SetIconFromColorMode(
-            DarkMode.GetColorMode()
-          ),
-          type: 'Action',
-        },
-        this.toggleSidePanel(),
-      ],
-    });
   }
 
   private renderShades(
@@ -453,7 +409,7 @@ export class ThemeSwitcherElement extends ModuleElement {
     `;
   }
 
-  protected renderInPanel() {
+  protected renderInSettings() {
     return html`
       <div class="panel-container">
         ${this.renderTitleSection()}
@@ -469,7 +425,7 @@ export class ThemeSwitcherElement extends ModuleElement {
         )}
         ${this.createSection(
           'Select Color Palettes!',
-          'These color palettes will be in your quick selection list',
+          'These are your color palettes!',
           this.renderSelectedColorPalettes.bind(this)
         )}
       </div>
@@ -480,19 +436,12 @@ export class ThemeSwitcherElement extends ModuleElement {
     return html`
       <div class="side-panel">
         ${this.renderSidePanelTitleSection()}
+        <div class="center dark-mode-padding">
+          <dark-mode></dark-mode>
+        </div>
         ${this.createSidePanelSection(
-          'System Color Palettes',
-          'Create from a system color palette',
-          this.renderSystemColorPaletteSection.bind(this)
-        )}
-        ${this.createSidePanelSection(
-          'Custom Palettes',
-          'Create your own color palette & share with others!',
-          this.renderCustomPaletteSection.bind(this)
-        )}
-        ${this.createSidePanelSection(
-          'Select Color Palettes!',
-          'These color palettes will be in your quick selection list',
+          'Your Color Palettes!',
+          '',
           this.renderSelectedColorPalettes.bind(this)
         )}
       </div>
@@ -501,16 +450,18 @@ export class ThemeSwitcherElement extends ModuleElement {
 
   render() {
     switch (this.renderMode) {
-      case 'renderInPanel':
-        return this.renderInPanel();
+      case 'renderInSettings':
+        return this.renderInSettings();
       case 'renderInSidePanel':
         return this.renderInSidePanel();
     }
+
+    return html``;
   }
 }
 
 declare global {
   interface HTMLElementTagNameMap {
-    'theme-switcher-element': ThemeSwitcherElement;
+    'themes-element': ThemesElement;
   }
 }

@@ -38,7 +38,8 @@ export class Tab {
     order?: number,
     isAppended?: boolean,
     tabType?: TabType,
-    isToggledInDrawer?: boolean
+    isToggledInDrawer?: boolean,
+    module?: Module
   ) {
     this.name = name;
     this.value = value;

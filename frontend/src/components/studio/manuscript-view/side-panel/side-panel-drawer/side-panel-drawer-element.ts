@@ -93,7 +93,7 @@ export class SidePanelDrawerElement extends LitElement {
   handleToggleSidePanel(e: CustomEvent<ToggleSidePanelEventType>) {
     // get module
     if (this.eventMatchesThisPanel(e.detail.position)) {
-      this._module = e.detail.module;
+      this._module = Object.assign(new Module(), e.detail.module);
 
       // I can choose when the tab is selected...
 
@@ -151,6 +151,7 @@ export class SidePanelDrawerElement extends LitElement {
     if (!this._module) {
       return html``;
     }
+
     // ! fix this type, you will once you abstract the functionality you need!
     const el: ModuleConstructorSchema = new ModuleRegistryClasses[
       this._module.getConstructorType()

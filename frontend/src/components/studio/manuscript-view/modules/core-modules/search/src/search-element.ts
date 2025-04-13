@@ -4,7 +4,7 @@ import { html } from 'lit';
 
 @customElement('search-element')
 export class SearchElement extends ModuleElement {
-  renderInPanel() {
+  renderInSettings() {
     return html`<div>Search Panel Content</div>`;
   }
 
@@ -13,8 +13,8 @@ export class SearchElement extends ModuleElement {
   }
 
   render() {
-    return this.renderMode === 'renderInPanel'
-      ? this.renderInPanel()
+    return this.renderMode === 'renderInSettings'
+      ? this.renderInSettings()
       : this.renderInSidePanel();
   }
 

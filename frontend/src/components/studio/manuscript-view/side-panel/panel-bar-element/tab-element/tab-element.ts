@@ -14,7 +14,17 @@ import {
   UpdateTabMenuEvent,
   UpdateTabMenuType,
 } from './tabMenu';
-import { sendEvent } from '../../../../../../lib/model/util';
+import { sendEvent, sendGlobalEvent } from '../../../../../../lib/model/util';
+import {
+  TOGGLE_SIDE_PANEL_EVENT,
+  ToggleSidePanelEventType,
+} from '../../../../../../lib/model/panel';
+import {
+  Module,
+  UPDATE_MODULE_EVENT,
+  UPDATE_MODULE_EVENT_TYPE,
+} from '../../../modules/module';
+import { ModuleRegistry } from '../../../modules/registry';
 
 export const AskModuleForStateEvent = 'ask-module-for-state-event';
 
@@ -28,20 +38,11 @@ export class TabElement extends LitElement {
   @property()
   selectedTab: Tab | null = null;
 
-  @state()
-  menuOptions: MenuOption[] = [];
-
-  @state()
-  selectedMenuOptions: MenuOption[] = [];
-
-  @state()
-  handleSelect!: HandleSelectType;
-
-  @state()
-  tabMenuActions: TabMenuAction<any>[] = [];
-
   @property()
   panelBarPosition!: PanelBarPosition;
+
+  @state()
+  _module!: Module;
 
   protected createRenderRoot(): Element | ShadowRoot {
     return this;
@@ -49,12 +50,6 @@ export class TabElement extends LitElement {
 
   constructor() {
     super();
-
-    // @ts-ignore
-    document.addEventListener(
-      UpdateTabMenuEvent,
-      this.updateMenuEvent.bind(this)
-    );
   }
   protected firstUpdated(_changedProperties: PropertyValues): void {
     this.tab = Object.assign(new Tab(), this.tab);
@@ -64,23 +59,7 @@ export class TabElement extends LitElement {
     }
   }
 
-  updateMenuEvent(e: CustomEvent<UpdateTabMenuType<TabMenuAction<any>>>) {
-    if (e.detail.tabId !== this.tab.id) {
-      return;
-    }
-
-    this.selectedMenuOptions = e.detail.selectedMenuOptions;
-    this.menuOptions = e.detail.menuOptions;
-    this.handleSelect = e.detail.handleSelect;
-    this.tabMenuActions = e.detail.tabMenuActions;
-    this.requestUpdate();
-  }
-
   render() {
-    if (this.menuOptions) {
-      return renderTabMenu.bind(this)();
-    }
-
     return html`
       <div class=${`${this.panelBarPosition}-div`}>
         <sl-tooltip content="${this.tab.name}">
@@ -89,6 +68,30 @@ export class TabElement extends LitElement {
             class="tab-button ${this.selectedTab?.value === this.tab.value
               ? 'active'
               : ''}"
+            @click=${() => {
+              this.tab.toggleTabInDrawer();
+
+              const module = ModuleRegistry.GetModuleById(this.tab.id!);
+
+              if (module) {
+                module.tab = this.tab;
+                sendGlobalEvent<UPDATE_MODULE_EVENT_TYPE>(
+                  UPDATE_MODULE_EVENT,
+                  module
+                );
+
+                sendEvent<ToggleSidePanelEventType>(
+                  this,
+                  TOGGLE_SIDE_PANEL_EVENT,
+                  {
+                    position: this.tab.position,
+                    module: module,
+                  }
+                );
+              } else {
+                console.log('error: module not found');
+              }
+            }}
             name=${this.tab.value}
             >${this.tab.name}</sl-icon-button
           >

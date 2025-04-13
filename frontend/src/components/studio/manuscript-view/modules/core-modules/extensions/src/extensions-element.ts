@@ -4,7 +4,7 @@ import { html } from 'lit';
 
 @customElement('extensions-element')
 export class ExtensionsElement extends ModuleElement {
-  renderInPanel() {
+  renderInSettings() {
     return html`<div>Extensions Panel Content</div>`;
   }
 
@@ -13,13 +13,9 @@ export class ExtensionsElement extends ModuleElement {
   }
 
   render() {
-    return this.renderMode === 'renderInPanel'
-      ? this.renderInPanel()
+    return this.renderMode === 'renderInSettings'
+      ? this.renderInSettings()
       : this.renderInSidePanel();
-  }
-
-  protected sendTabState() {
-    console.log('Sending tab state for Extensions module');
   }
 }
 

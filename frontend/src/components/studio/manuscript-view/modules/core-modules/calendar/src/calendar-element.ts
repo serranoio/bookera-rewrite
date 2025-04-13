@@ -4,7 +4,7 @@ import { html } from 'lit';
 
 @customElement('calendar-element')
 export class CalendarElement extends ModuleElement {
-  renderInPanel() {
+  renderInSettings() {
     return html`<div>Calendar Panel Content</div>`;
   }
 
@@ -13,8 +13,8 @@ export class CalendarElement extends ModuleElement {
   }
 
   render() {
-    return this.renderMode === 'renderInPanel'
-      ? this.renderInPanel()
+    return this.renderMode === 'renderInSettings'
+      ? this.renderInSettings()
       : this.renderInSidePanel();
   }
 

@@ -4,7 +4,7 @@ import { html } from 'lit';
 
 @customElement('outline-element')
 export class OutlineElement extends ModuleElement {
-  renderInPanel() {
+  renderInSettings() {
     return html`<div>Outline Panel Content</div>`;
   }
 
@@ -13,8 +13,8 @@ export class OutlineElement extends ModuleElement {
   }
 
   render() {
-    return this.renderMode === 'renderInPanel'
-      ? this.renderInPanel()
+    return this.renderMode === 'renderInSettings'
+      ? this.renderInSettings()
       : this.renderInSidePanel();
   }
 

@@ -4,7 +4,7 @@ import { html } from 'lit';
 
 @customElement('versions-element')
 export class VersionsElement extends ModuleElement {
-  renderInPanel() {
+  renderInSettings() {
     return html`<div>Versions Panel Content</div>`;
   }
 
@@ -13,8 +13,8 @@ export class VersionsElement extends ModuleElement {
   }
 
   render() {
-    return this.renderMode === 'renderInPanel'
-      ? this.renderInPanel()
+    return this.renderMode === 'renderInSettings'
+      ? this.renderInSettings()
       : this.renderInSidePanel();
   }
 

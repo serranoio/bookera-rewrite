@@ -43,14 +43,14 @@ customElement('module-element');
  * @method intializeModule - Abstract method to initialize and return a new module instance.
  * @method _sendTabState - Abstract method to handle the dispatching of the module's tab state.
  * @method renderInSidePanel - Abstract method to define rendering logic for the side panel.
- * @method renderInPanel - Abstract method to define rendering logic for the main panel.
+ * @method renderInSettings - Abstract method to define rendering logic for the main panel.
  * @method render - Abstract method to define the overall rendering logic for the module element.
  */
 export abstract class ModuleElement extends LitElement {
   @state()
   module!: Module;
 
-  @state() title: string = 'Theme Switcher';
+  @state() title!: string;
 
   @state()
   renderMode: RenderMode;
@@ -60,11 +60,7 @@ export abstract class ModuleElement extends LitElement {
     this.renderMode = renderMode;
     this.module = module;
     this.module.tab = Object.assign(new Tab(), this.module.tab);
-
-    document.addEventListener(
-      AskModuleForStateEvent,
-      this.sendTabState.bind(this)
-    );
+    this.title = this.module.title!;
 
     // @ts-ignore
     document.addEventListener(
@@ -77,16 +73,6 @@ export abstract class ModuleElement extends LitElement {
     if (e.detail.moduleId === this.module.id) {
       this.requestUpdate();
     }
-  }
-
-  // docs for this
-  protected abstract sendTabState(): void;
-
-  // please use sendUpdate inside sendTabState
-  protected sendData<T>(eventData: UpdateTabMenuType<T>) {
-    if (!this.module.tab?.isAppended) return;
-
-    sendEvent<UpdateTabMenuType<T>>(this, UpdateTabMenuEvent, eventData);
   }
 
   protected handleTab() {
@@ -120,7 +106,6 @@ export abstract class ModuleElement extends LitElement {
             if (!this.module.tab?.isAppended) {
               this.module.tab?.appendTab();
               ModuleRegistry.UpdateModule(this.module);
-              this.sendTabState();
               notify(
                 'Successfully inserted tab on left panel',
                 'success',
@@ -178,7 +163,7 @@ export abstract class ModuleElement extends LitElement {
     section: () => TemplateResult
   ) {
     return html`
-      <sl-details>
+      <sl-details open>
         <h5 slot="summary">${title}</h5>
         <p>${description}</p>
         ${section()}
@@ -200,9 +185,9 @@ export abstract class ModuleElement extends LitElement {
     </div>`;
   }
 
-  abstract renderInSidePanel(): TemplateResult;
+  protected abstract renderInSidePanel(): TemplateResult;
 
-  abstract renderInPanel(): TemplateResult;
+  protected abstract renderInSettings(): TemplateResult;
 
   abstract render(): TemplateResult;
 }

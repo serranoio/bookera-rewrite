@@ -60,7 +60,7 @@ export class PanelContentElement extends LitElement {
         const type = moduleObject.getConstructorType();
 
         const obj: ModuleConstructorSchema = new ModuleRegistryClasses[type](
-          'renderInPanel',
+          'renderInSettings',
           moduleObject
         );
 
