@@ -1,0 +1,6 @@
+{
+  "name": "open-side-panel-module",
+  "version": "0.0.1",
+  "description": "Open Side Panel module for managing side panel interactions.",
+  "main": "src/module.ts"
+}

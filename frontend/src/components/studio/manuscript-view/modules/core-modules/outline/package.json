@@ -1,0 +1,6 @@
+{
+  "name": "outline-module",
+  "version": "0.0.1",
+  "description": "Outline module for managing document outlines.",
+  "main": "src/module.ts"
+}

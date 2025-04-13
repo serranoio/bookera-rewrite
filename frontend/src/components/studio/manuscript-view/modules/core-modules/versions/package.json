@@ -1,0 +1,6 @@
+{
+  "name": "versions-module",
+  "version": "0.0.1",
+  "description": "Versions module for managing version history.",
+  "main": "src/module.ts"
+}

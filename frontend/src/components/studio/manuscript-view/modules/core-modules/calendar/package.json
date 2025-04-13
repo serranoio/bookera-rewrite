@@ -1,0 +1,6 @@
+{
+  "name": "calendar-module",
+  "version": "0.0.1",
+  "description": "Calendar module for managing events and schedules.",
+  "main": "src/module.ts"
+}

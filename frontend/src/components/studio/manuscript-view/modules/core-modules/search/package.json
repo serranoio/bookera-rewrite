@@ -1,0 +1,6 @@
+{
+  "name": "search-module",
+  "version": "0.0.1",
+  "description": "Search module for finding content.",
+  "main": "src/module.ts"
+}

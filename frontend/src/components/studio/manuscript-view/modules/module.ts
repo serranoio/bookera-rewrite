@@ -13,6 +13,8 @@ export interface RequestUpdateEventType {
   moduleId: string;
 }
 
+export const DEFAULT_VERSION = '0.0.1';
+
 // modules
 export const ModuleRegistryClasses = {};
 

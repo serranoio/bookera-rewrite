@@ -1,0 +1,6 @@
+{
+  "name": "open-panel-module",
+  "version": "0.0.1",
+  "description": "Open Panel module for managing panel interactions.",
+  "main": "src/module.ts"
+}

@@ -2,7 +2,7 @@ import { LitElement, html, css } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { ColorMode } from './theme-switcher-element';
 import { ColorSet } from './color-sets';
-import base from '../../../../../../lib/stylesheets/base';
+import base from '../../../../../../../lib/stylesheets/base';
 import { Bag, BagManager, CreateBagManager } from '@pb33f/saddlebag';
 import { DarkModeKey, DarkModeSingleton } from './dark-mode-state';
 import {

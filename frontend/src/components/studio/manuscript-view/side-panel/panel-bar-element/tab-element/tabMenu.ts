@@ -53,7 +53,7 @@ export interface BookeraApiAction {
 export type ActionType = 'BookeraApi' | 'Action';
 
 export interface StateAction<T> {
-  eventHandler: (t: T) => void; // if the action needs to update state. ex: dark mode => light mode
+  eventHandler: (colorMode: T) => void; // if the action needs to update state. ex: dark mode => light mode
   state: T; // current state ex: is dark mode?
   newState: T;
   conditional: Conditional;
@@ -63,13 +63,16 @@ export interface StateAction<T> {
 
 export type TabMenuAction<T> = BookeraApiAction | StateAction<T> | undefined; // to handle the empty state case
 
-export interface UpdateTabMenuType<TabMenuActionType> {
+export interface UpdateTabMenu<TabMenuActionType> {
   menuOptions: MenuOption[];
   selectedMenuOptions: MenuOption[]; // subset of menuOptions
   handleSelect: HandleSelectType;
   tabId: string;
   tabMenuActions: TabMenuAction<TabMenuActionType>[];
 }
+
+export type UpdateTabMenuType<T> = UpdateTabMenu<T> | undefined;
+
 function isMenuOptionSelected(
   this: TabElement,
   menuOption: MenuOption

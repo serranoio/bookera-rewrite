@@ -1,0 +1,6 @@
+{
+  "name": "pomodoro-module",
+  "version": "0.0.1",
+  "description": "Pomodoro module for time management.",
+  "main": "src/module.ts"
+}

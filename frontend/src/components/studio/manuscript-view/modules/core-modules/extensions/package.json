@@ -1,0 +1,6 @@
+{
+  "name": "extensions-module",
+  "version": "0.0.1",
+  "description": "Extensions module for managing additional features.",
+  "main": "src/module.ts"
+}

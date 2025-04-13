@@ -15,8 +15,8 @@ import { Point } from 'chart.js';
 import { NewPanelEventType } from '../../../../lib/model/site';
 import { createPanelTab } from '../../../../pages/manuscript-element';
 import { QuoteList } from '../../../../lib/model/hard-coded';
-import '../modules/modules/theme-switcher/theme-switcher-element';
-import { ThemeSwitcherElement } from '../modules/modules/theme-switcher/theme-switcher-element';
+import '../modules/core-modules/theme-switcher/src/theme-switcher-element';
+import { ThemeSwitcherElement } from '../modules/core-modules/theme-switcher/src/theme-switcher-element';
 import {
   CLOSE_PANEL_EVENT,
   CLOSE_SIDE_PANEL_EVENT,

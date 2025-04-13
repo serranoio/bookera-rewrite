@@ -1,10 +1,10 @@
 import { SlMenuItem } from '@shoelace-style/shoelace';
-import { notify } from '../../../../../../lib/model/lit';
+import { notify } from '../../../../../../../lib/model/lit';
 import {
   doesClickContainElement,
   sendEvent,
   sendGlobalEvent,
-} from '../../../../../../lib/model/util';
+} from '../../../../../../../lib/model/util';
 import {
   PrimaryColor,
   BaseColor,

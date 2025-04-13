@@ -37,6 +37,13 @@ export class PanelContentElement extends LitElement {
     }
   }
 
+  protected createSection(title: string, body: string) {
+    return html`
+      <h5 class="section-title">${title}</h5>
+      <p class="body">${body}</p>
+    `;
+  }
+
   private _updateSettingsOnRerender(bag: Bag<Module>) {
     const modules = ModuleRegistry.GetModulesInSettings(bag.export());
     if (modules.length === 0) {

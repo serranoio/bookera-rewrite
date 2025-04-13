@@ -4,7 +4,7 @@ import {
   genShortID,
   sendEvent,
   sendGlobalEvent,
-} from '../../../../../../lib/model/util';
+} from '../../../../../../../lib/model/util';
 import {
   BaseColor,
   ColorSet,

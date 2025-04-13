@@ -70,6 +70,16 @@ export default css`
     letter-spacing: -0.025em;
   }
 
+  h6 {
+    font-size: .rem; 20px
+    line-height: 1.75; /* 35px */
+    color: var(--slate-500);
+
+    font-weight: 600;
+
+    letter-spacing: -0.025em;
+  }
+
   .lead {
     /* text-xl */
     font-size: 1.25rem; /* 20px */
