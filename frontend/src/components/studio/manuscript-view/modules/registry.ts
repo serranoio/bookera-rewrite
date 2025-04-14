@@ -1,9 +1,13 @@
 import { BagManager, Bag, CreateBagManager } from '@pb33f/saddlebag';
 import localforage from 'localforage';
-import { Module, ModuleRegistryClasses, UPDATE_MODULE_EVENT } from './module';
+import {
+  Module,
+  ModuleRegistryClasses,
+  RenderMode,
+  UPDATE_MODULE_EVENT,
+} from './module';
 import { ColorPalettesKey } from './core-modules/theme-switcher/src/stateful';
 import { z } from 'zod';
-import { RenderMode } from './core-modules/theme-switcher/src/theme-switcher-element';
 import { Tab, TabPosition } from '../../../../lib/model/tab';
 import { themeSwitcherModule } from './core-modules/theme-switcher/src/module';
 import { calendarModule } from './core-modules/calendar/src/module';
@@ -13,6 +17,7 @@ import { outlineModule } from './core-modules/outline/src/module';
 import { pomodoroModule } from './core-modules/pomodoro/src/module';
 import { searchModule } from './core-modules/search/src/module';
 import { versionsModule } from './core-modules/versions/src/module';
+import { excalidrawModule } from './core-modules/excalidraw/src/module';
 
 export type ModuleConstructorSchema = (
   renderMode: RenderMode,
@@ -32,6 +37,7 @@ export class ModuleRegistry {
     themeSwitcherModule,
     pomodoroModule,
     calendarModule,
+    excalidrawModule,
   ];
 
   constructor() {

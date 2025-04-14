@@ -1,4 +1,4 @@
-import { css } from "lit";
+import { css } from 'lit';
 export default css`
   :host {
     position: absolute;
@@ -17,7 +17,7 @@ export default css`
   .handle {
     position: absolute;
     height: 100%;
-    width: 5px;
-    background-color: var(--slate-500);
+    width: 2px;
+    background-color: var(--slate-200);
   }
 `;

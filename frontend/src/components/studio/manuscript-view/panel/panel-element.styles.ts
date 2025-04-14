@@ -102,7 +102,8 @@ export default css`
   }
 
   .tab-content-container {
-    height: 100%;
+    height: calc(100vh - 36px);
+    overflow-y: scroll;
   }
 
   .stretch::part(base) {

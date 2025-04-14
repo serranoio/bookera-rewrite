@@ -55,6 +55,9 @@ export abstract class ModuleElement extends LitElement {
   @state()
   renderMode: RenderMode;
 
+  @state()
+  u: boolean = false;
+
   constructor(renderMode: RenderMode, module: Module) {
     super();
     this.renderMode = renderMode;
@@ -71,6 +74,7 @@ export abstract class ModuleElement extends LitElement {
 
   private listenToUpdates(e: CustomEvent<RequestUpdateEventType>) {
     if (e.detail.moduleId === this.module.id) {
+      console.log('update');
       this.requestUpdate();
     }
   }
@@ -78,7 +82,7 @@ export abstract class ModuleElement extends LitElement {
   protected handleTab() {
     if (this.module.tab?.isAppended) {
       return html`
-        <sl-tooltip content="Remove tab from quick settings">
+        <sl-tooltip content="Remove tab from side-bar">
           <sl-icon-button
             name="layout-sidebar"
             class="icon-button"

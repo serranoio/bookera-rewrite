@@ -1,15 +1,45 @@
 import { ModuleElement } from '../../../module-element';
 import { customElement } from 'lit/decorators.js';
 import { html } from 'lit';
+import base from '../../../../../../../lib/stylesheets/base';
+import moduleElementStyle from '../../../module-element.style';
 
 @customElement('search-element')
 export class SearchElement extends ModuleElement {
-  renderInSettings() {
-    return html`<div>Search Panel Content</div>`;
+  static styles = [base, moduleElementStyle];
+
+  private renderSearchSettingsContent() {
+    return html`<div>Search settings content</div>`;
   }
 
-  renderInSidePanel() {
-    return html`<div>Search Side Panel Content</div>`;
+  private renderSearchSidePanelContent() {
+    return html`<div>Search side panel content</div>`;
+  }
+
+  protected renderInSettings() {
+    return html`
+      <div class="panel-container">
+        ${this.renderTitleSection()}
+        ${this.createSection(
+          'Search Settings',
+          'Manage your search settings here.',
+          this.renderSearchSettingsContent.bind(this)
+        )}
+      </div>
+    `;
+  }
+
+  protected renderInSidePanel() {
+    return html`
+      <div class="side-panel">
+        ${this.renderSidePanelTitleSection()}
+        ${this.createSidePanelSection(
+          'Search Overview',
+          'Quick access to your search tools.',
+          this.renderSearchSidePanelContent.bind(this)
+        )}
+      </div>
+    `;
   }
 
   render() {

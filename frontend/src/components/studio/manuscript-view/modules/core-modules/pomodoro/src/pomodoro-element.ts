@@ -1,15 +1,45 @@
 import { ModuleElement } from '../../../module-element';
 import { customElement } from 'lit/decorators.js';
 import { html } from 'lit';
+import base from '../../../../../../../lib/stylesheets/base';
+import moduleElementStyle from '../../../module-element.style';
 
 @customElement('pomodoro-element')
 export class PomodoroElement extends ModuleElement {
-  renderInSettings() {
-    return html`<div>Pomodoro Panel Content</div>`;
+  static styles = [base, moduleElementStyle];
+
+  private renderPomodoroSettingsContent() {
+    return html`<div>Pomodoro settings content</div>`;
   }
 
-  renderInSidePanel() {
-    return html`<div>Pomodoro Side Panel Content</div>`;
+  private renderPomodoroSidePanelContent() {
+    return html`<div>Pomodoro side panel content</div>`;
+  }
+
+  protected renderInSettings() {
+    return html`
+      <div class="panel-container">
+        ${this.renderTitleSection()}
+        ${this.createSection(
+          'Pomodoro Settings',
+          'Configure your Pomodoro timer.',
+          this.renderPomodoroSettingsContent.bind(this)
+        )}
+      </div>
+    `;
+  }
+
+  protected renderInSidePanel() {
+    return html`
+      <div class="side-panel">
+        ${this.renderSidePanelTitleSection()}
+        ${this.createSidePanelSection(
+          'Pomodoro Timer',
+          'Quick access to your Pomodoro timer.',
+          this.renderPomodoroSidePanelContent.bind(this)
+        )}
+      </div>
+    `;
   }
 
   render() {

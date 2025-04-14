@@ -6,54 +6,47 @@ import { Module, ModuleRegistryClasses } from '../modules/module';
 import { ModuleConstructorSchema, ModuleRegistry } from '../modules/registry';
 import { Bag } from '@pb33f/saddlebag';
 import panelContentElementStyles from './panel-content-element.styles';
-
-export const PanelContent = {
-  Settings: 'Settings',
-  New: 'New',
-  Module: 'Module',
-} as const;
-
-export type PanelContentType = keyof typeof PanelContent;
+import { PanelTabs, PanelTabType } from './panel-element';
 
 @customElement('panel-content-element')
 export class PanelContentElement extends LitElement {
   static styles = [base, panelContentElementStyles];
 
   @state()
-  _panelContent: PanelContentType = PanelContent.New;
+  _panelContent: PanelTabType = PanelTabs.New;
 
   @state()
-  _settings: TemplateResult;
+  _settings!: TemplateResult;
 
-  constructor(panelContent: PanelContentType) {
+  @state()
+  _new!: TemplateResult;
+
+  constructor(panelContent: PanelTabType) {
     super();
     this._panelContent = panelContent;
 
-    if (this._panelContent === 'Settings') {
-      const moduleBag = ModuleRegistry.GetModuleBag();
-      this._updateSettingsOnRerender(moduleBag);
-
-      moduleBag.onPopulated(this.onModuleBagPopulated.bind(this));
+    if (panelContent === PanelTabs.Settings) {
+      this.handleSettingsPage();
     }
   }
 
-  protected createSection(title: string, body: string) {
-    return html`
-      <h5 class="section-title">${title}</h5>
-      <p class="body">${body}</p>
-    `;
+  protected handleSettingsPage() {
+    const moduleBag = ModuleRegistry.GetModuleBag();
+    this.updateSettingsOnRerender(moduleBag);
+
+    moduleBag.onPopulated(this.onModuleBagPopulated.bind(this));
   }
 
-  private _updateSettingsOnRerender(bag: Bag<Module>) {
+  private updateSettingsOnRerender(bag: Bag<Module>) {
     const modules = ModuleRegistry.GetModulesInSettings(bag.export());
     if (modules.length === 0) {
       return; // onpopulated, there are no modules
     }
 
-    this._settings = this._populateSettings(modules);
+    this._settings = this.populateSettings(modules);
   }
 
-  _populateSettings(modules: Module[]): TemplateResult {
+  protected populateSettings(modules: Module[]): TemplateResult {
     return html`
       ${modules.flatMap((module: Module) => {
         const moduleObject = Object.assign(new Module(), module);
@@ -69,9 +62,9 @@ export class PanelContentElement extends LitElement {
     `;
   }
 
-  onModuleBagPopulated(bag: Map<string, Module> | undefined) {
+  protected onModuleBagPopulated(bag: Map<string, Module> | undefined) {
     const modules = ModuleRegistry.GetModulesInSettings(bag!);
-    this._settings = this._populateSettings(modules);
+    this._settings = this.populateSettings(modules);
 
     this.requestUpdate();
   }
@@ -80,7 +73,7 @@ export class PanelContentElement extends LitElement {
     return QuoteList[Math.trunc(Math.random() * QuoteList.length)];
   }
 
-  renderNewTab() {
+  protected renderNewTab() {
     return html`
       <div class="fill-panel center empty panel">
         <p class="blockquote">${this.generateQuirkyQuote()}</p>
@@ -88,7 +81,7 @@ export class PanelContentElement extends LitElement {
     `;
   }
 
-  renderSettings() {
+  protected renderSettings() {
     return html`
       <div class="fill-panel settings-padding">
         <!-- make the color switcher with the intention that you are creating an api for it -->
@@ -97,15 +90,15 @@ export class PanelContentElement extends LitElement {
     `;
   }
 
-  renderModule() {}
+  protected renderModule() {}
 
   render() {
     switch (this._panelContent) {
-      case PanelContent.Settings:
+      case PanelTabs.Settings:
         return this.renderSettings();
-      case PanelContent.New:
+      case PanelTabs.New:
         return this.renderNewTab();
-      case PanelContent.Module:
+      case PanelTabs.Module:
         return this.renderModule();
     }
   }

@@ -13,10 +13,8 @@ import { PANEL_RESIZE_EVENT } from './panel-handle/panel-handle-element';
 import { PanelSide } from '../side-panel/panel-bar-element/panel-bar-element';
 import { Point } from 'chart.js';
 import { NewPanelEventType } from '../../../../lib/model/site';
-import { createPanelTab } from '../../../../pages/manuscript-element';
 import { QuoteList } from '../../../../lib/model/hard-coded';
 import '../modules/core-modules/theme-switcher/src/theme-switcher-element';
-import { ThemeSwitcherElement } from '../modules/core-modules/theme-switcher/src/theme-switcher-element';
 import {
   CLOSE_PANEL_EVENT,
   CLOSE_SIDE_PANEL_EVENT,
@@ -34,33 +32,40 @@ import { ModuleRegistry } from '../modules/registry';
 import { Module } from '../modules/module';
 import { mo } from '@twind/core';
 import { CreateBagManager, GetBagManager } from '@pb33f/saddlebag';
-import { PanelContentElement, PanelContentType } from './panel-content-element';
+import { PanelContentElement } from './panel-content-element';
 
 export const MINIMMAL_PANEL_WIDTH = 200;
 
-export type PanelTabTypes = 'New Tab' | 'Body' | 'Divider' | 'Settings';
+export const PanelTabs = {
+  Settings: 'Settings',
+  New: 'New',
+  Module: 'Module',
+  Undefined: 'Undefined',
+} as const;
+
+export type PanelTabType = keyof typeof PanelTabs;
 
 export class PanelTab {
   name: string;
-  type: PanelTabTypes;
+  type: PanelTabType;
   id: string;
 
-  constructor(name: string, type: PanelTabTypes) {
+  constructor(name: string, type: PanelTabType) {
     this.name = name;
     this.type = type;
     this.id = genShortID(6);
   }
 
-  static CreateNewPanel(panelTab: PanelTabTypes) {
-    if (panelTab === 'Settings') {
+  static CreateNewPanel(panelTab: PanelTabType) {
+    if (Object.keys(PanelTabs).includes(panelTab)) {
       return new PanelTab(panelTab, panelTab);
     }
 
-    return new PanelTab('undefined', 'Body');
+    return new PanelTab('undefined', 'Undefined');
   }
 
   renderPanelContents(): TemplateResult {
-    const panelContent = new PanelContentElement(this.type as PanelContentType);
+    const panelContent = new PanelContentElement(this.type as PanelTabType);
 
     return html`${panelContent}`;
   }
@@ -102,10 +107,8 @@ export class PanelElement extends LitElement {
   @property()
   isRightSidePanelOpened: boolean = false;
 
-  @property()
   isDraggingTab: IsDraggingTabEvent | null = null;
 
-  @property()
   isPointerDown: boolean = false;
 
   constructor() {
@@ -134,19 +137,24 @@ export class PanelElement extends LitElement {
     );
 
     document.addEventListener('pointermove', this.handleDragTab.bind(this));
-    document.addEventListener('pointerup', this.handleDestroyTab.bind(this));
+    document.addEventListener('pointerup', this.handleDropTab.bind(this));
   }
 
   handleCreateEmptyTab(e: CustomEvent<NewPanelTabEventType>) {
     if (!(e.detail.panelID === this.panelID)) return;
 
-    this.tabs.push(new PanelTab('New Tab', 'New Tab'));
+    this.tabs.push(new PanelTab('New Tab', 'New'));
     this.activeTab = this.tabs[this.tabs.length - 1];
     this.requestUpdate();
   }
 
-  setDraggedTab(e: CustomEvent<any>) {
+  setDraggedTab(e: CustomEvent<IsDraggingTabEvent>) {
+    // if (
+    //   e.detail.fromPanel === this.panelID ||
+    //   e.detail.toPanel === this.panelID
+    // ) {
     this.isDraggingTab = e.detail;
+    // }
   }
 
   private addTabsToDifferentPanels() {
@@ -304,7 +312,7 @@ export class PanelElement extends LitElement {
     return e.target.id;
   }
 
-  handleDestroyTab(e: any) {
+  handleDropTab(e: any) {
     if (!this.isDraggingTab) {
       document.querySelector(`.${DRAGGED_ELEMENT_CSS}`)?.remove();
       return;
@@ -433,8 +441,6 @@ export class PanelElement extends LitElement {
       );
 
       document.body.appendChild(hoverContainer);
-
-      console.log('create hover container');
     }
   }
 
@@ -553,10 +559,8 @@ export class PanelElement extends LitElement {
   }
 
   handleTabClick(e: any) {
-    // handle tab close
     const tabClose = doesClickContainElement(e, { nodeName: 'SL-ICON-BUTTON' });
 
-    // handle tab click
     const element = doesClickContainElement(e, { className: 'panel-tab' });
     if (tabClose) {
       let setNewActiveTab = false;
@@ -589,6 +593,7 @@ export class PanelElement extends LitElement {
       (tab: PanelTab) => tab.id === element.dataset.id
     );
 
+    console.log('clicked this tab');
     this.activeTab = tab!;
   }
 
@@ -660,6 +665,7 @@ export class PanelElement extends LitElement {
                 }
               }}
               @pointerdown=${(e: PointerEvent) => {
+                // const setDraggingTab = () => {
                 this.isDraggingTab = {
                   tab: tab,
                   tabElement: e.target! as Element,
@@ -672,6 +678,20 @@ export class PanelElement extends LitElement {
 
                 this.isPointerDown = true;
                 sendEvent(this, IS_DRAGGING_TAB_EVENT, this.isDraggingTab);
+                // };
+                // const longPressTimeout = setTimeout(
+                //   setDraggingTab.bind(this),
+                //   100
+                // ); // Adjust the timeout duration as needed
+
+                // const clearLongPress = () => {
+                //   clearTimeout(longPressTimeout);
+                //   document.removeEventListener('pointerup', clearLongPress);
+                //   document.removeEventListener('pointerleave', clearLongPress);
+                // };
+
+                // document.addEventListener('pointerup', clearLongPress);
+                // document.addEventListener('pointerleave', clearLongPress);
               }}
             >
               <p>${tab.name}</p>
@@ -759,6 +779,7 @@ export class PanelElement extends LitElement {
 
   render() {
     this.updateOnRender();
+    console.log('render', this.panelID);
 
     return html`
       <div id="panel-container">

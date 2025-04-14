@@ -24,7 +24,8 @@ export default css`
   .title-box {
     display: flex !important;
     align-items: center;
-    margin-bottom: var(--spacingMedium);
+    margin-bottom: var(--spacing);
+    position: relative;
   }
 
   .icon-button {

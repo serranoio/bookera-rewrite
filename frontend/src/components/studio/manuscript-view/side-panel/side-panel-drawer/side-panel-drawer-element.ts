@@ -110,7 +110,8 @@ export class SidePanelDrawerElement extends LitElement {
     }
   }
   handlePanelResizeEvent(e: any) {
-    this._previousDrawerWidth = e.detail.width;
+    console.log('panel resize');
+    // this._previousDrawerWidth = e.detail.width;
   }
 
   handleCloseSidePanel(e: CustomEvent<any>) {
@@ -152,7 +153,7 @@ export class SidePanelDrawerElement extends LitElement {
       return html``;
     }
 
-    // ! fix this type, you will once you abstract the functionality you need!
+    // todo: fix this type, you will once you abstract the functionality you need!
     const el: ModuleConstructorSchema = new ModuleRegistryClasses[
       this._module.getConstructorType()
     ]('renderInSidePanel', this._module);

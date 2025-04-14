@@ -1,15 +1,45 @@
 import { ModuleElement } from '../../../module-element';
 import { customElement } from 'lit/decorators.js';
 import { html } from 'lit';
+import base from '../../../../../../../lib/stylesheets/base';
+import moduleElementStyle from '../../../module-element.style';
 
 @customElement('versions-element')
 export class VersionsElement extends ModuleElement {
-  renderInSettings() {
-    return html`<div>Versions Panel Content</div>`;
+  static styles = [base, moduleElementStyle];
+
+  private renderVersionsSettingsContent() {
+    return html`<div>Versions settings content</div>`;
   }
 
-  renderInSidePanel() {
-    return html`<div>Versions Side Panel Content</div>`;
+  private renderVersionsSidePanelContent() {
+    return html`<div>Versions side panel content</div>`;
+  }
+
+  protected renderInSettings() {
+    return html`
+      <div class="panel-container">
+        ${this.renderTitleSection()}
+        ${this.createSection(
+          'Versions Settings',
+          'Manage your version history.',
+          this.renderVersionsSettingsContent.bind(this)
+        )}
+      </div>
+    `;
+  }
+
+  protected renderInSidePanel() {
+    return html`
+      <div class="side-panel">
+        ${this.renderSidePanelTitleSection()}
+        ${this.createSidePanelSection(
+          'Versions Overview',
+          'Quick access to version history.',
+          this.renderVersionsSidePanelContent.bind(this)
+        )}
+      </div>
+    `;
   }
 
   render() {
