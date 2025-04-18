@@ -23,6 +23,7 @@ import {
   NEW_TAB_EVENT,
   NewPanelTabEventType,
   OPEN_SIDE_PANEL_EVENT,
+  OpenSidePanelEventTYpe,
   PANEL_CONSTRUCTION_EVENT,
   PanelDrop,
   SPLIT_PANEL_EVENT,
@@ -33,46 +34,15 @@ import { Module } from '../modules/module';
 import { mo } from '@twind/core';
 import { CreateBagManager, GetBagManager } from '@pb33f/saddlebag';
 import { PanelContentElement } from './panel-content-element';
+import {
+  PanelTab,
+  domifyDraggedTabOnManuscriptElement,
+  getDraggedTabOnManuscriptElement,
+} from './panel-tab/panel-tab';
+import { Panel } from './panel-state';
 
 export const MINIMMAL_PANEL_WIDTH = 200;
 
-export const PanelTabs = {
-  Settings: 'Settings',
-  New: 'New',
-  Module: 'Module',
-  Undefined: 'Undefined',
-} as const;
-
-export type PanelTabType = keyof typeof PanelTabs;
-
-export class PanelTab {
-  name: string;
-  type: PanelTabType;
-  id: string;
-
-  constructor(name: string, type: PanelTabType) {
-    this.name = name;
-    this.type = type;
-    this.id = genShortID(6);
-  }
-
-  static CreateNewPanel(panelTab: PanelTabType) {
-    if (Object.keys(PanelTabs).includes(panelTab)) {
-      return new PanelTab(panelTab, panelTab);
-    }
-
-    return new PanelTab('undefined', 'Undefined');
-  }
-
-  renderPanelContents(): TemplateResult {
-    const panelContent = new PanelContentElement(this.type as PanelTabType);
-
-    return html`${panelContent}`;
-  }
-}
-
-const HOVER_CONATINER_CSS = 'hover-container';
-const DRAGGED_ELEMENT_CSS = 'dragged-element';
 @customElement('panel-element')
 export class PanelElement extends LitElement {
   static styles = [panelElementStyles, base];
@@ -107,16 +77,38 @@ export class PanelElement extends LitElement {
   @property()
   isRightSidePanelOpened: boolean = false;
 
-  isDraggingTab: IsDraggingTabEvent | null = null;
-
   isPointerDown: boolean = false;
 
-  constructor() {
+  @state()
+  areTabsHoverable: boolean = false;
+
+  private isDraggingTab: IsDraggingTabEvent | null = null;
+
+  formPanel(): Panel {
+    return new Panel(
+      this.tabs,
+      this.panelID!,
+      this.width,
+      false,
+      this.activeTab?.id
+    );
+  }
+
+  constructor(panel?: Panel) {
     super();
+    if (panel) {
+      this.panelID = panel.id!;
+      this.tabs = panel.tabs?.map((tab: PanelTab) => {
+        return Object.assign(new PanelTab(), tab);
+      })!;
+      this.activeTab = this.tabs.find(
+        (tab: PanelTab) => tab.id === panel.activeTabId!
+      )!;
+    }
 
     document.addEventListener(
       OPEN_SIDE_PANEL_EVENT,
-      this.handleOpenRightSidePanel.bind(this)
+      this.handleToggleSidePanel.bind(this)
     );
 
     document.addEventListener(
@@ -126,18 +118,9 @@ export class PanelElement extends LitElement {
 
     // @ts-ignore
     document.addEventListener(
-      IS_DRAGGING_TAB_EVENT,
-      this.setDraggedTab.bind(this)
-    );
-
-    // @ts-ignore
-    document.addEventListener(
       NEW_TAB_EVENT,
       this.handleCreateEmptyTab.bind(this)
     );
-
-    document.addEventListener('pointermove', this.handleDragTab.bind(this));
-    document.addEventListener('pointerup', this.handleDropTab.bind(this));
   }
 
   handleCreateEmptyTab(e: CustomEvent<NewPanelTabEventType>) {
@@ -145,311 +128,18 @@ export class PanelElement extends LitElement {
 
     this.tabs.push(new PanelTab('New Tab', 'New'));
     this.activeTab = this.tabs[this.tabs.length - 1];
+    this.updatePanelWrapper();
+
     this.requestUpdate();
   }
 
-  setDraggedTab(e: CustomEvent<IsDraggingTabEvent>) {
-    // if (
-    //   e.detail.fromPanel === this.panelID ||
-    //   e.detail.toPanel === this.panelID
-    // ) {
-    this.isDraggingTab = e.detail;
-    // }
-  }
-
-  private addTabsToDifferentPanels() {
-    if (!this.isDraggingTab) return;
-
-    // & simply add other tabs
-    // * but specifically in a tab location
-    if (
-      this.isDraggingTab.fromPanel !== this.isDraggingTab.toPanel &&
-      (this.isDraggingTab.hoveredTab || this.isDraggingTab.hoveredTabElement)
-    ) {
-      // to panel
-      if (this.isDraggingTab.toPanel === this.panelID) {
-        // & now splice the tabs
-        const hoveredTabIndex = this.tabs.findIndex(
-          (tab: PanelTab) => tab.id === this.isDraggingTab?.hoveredTab?.id
-        );
-
-        if (hoveredTabIndex >= 0) {
-          this.tabs = [
-            ...this.tabs.slice(0, hoveredTabIndex),
-            this.isDraggingTab.tab,
-            ...this.tabs.slice(hoveredTabIndex),
-          ];
-        } else {
-          // append to the end of the list
-          this.tabs.push(this.isDraggingTab.tab);
-        }
-
-        this.activeTab = this.isDraggingTab.tab;
-        this.requestUpdate();
-      } else {
-        // this happens to the other panel
-        this.tabs = this.tabs.filter(
-          (tab: PanelTab) => tab.id !== this.isDraggingTab?.tab.id
-        );
-        if (this.tabs.length > 0) {
-          this.activeTab = this.tabs[0];
-        } else {
-          sendEvent(this, CLOSE_PANEL_EVENT, this.panelID);
-        }
-      }
-
-      this.requestUpdate();
-    }
-  }
-
-  private addTabToEndOfList() {
-    if (!this.isDraggingTab) return;
-
-    // if we have a tab at the beginnig, we remove it. it goes to the end
-    this.tabs = this.tabs.filter(
-      (tab: PanelTab) => tab.id !== this.isDraggingTab?.tab.id
-    );
-    this.tabs.push(this.isDraggingTab.tab);
-  }
-
-  private addTabsToEndOfTabListViaTabList() {
-    if (!this.isDraggingTab) return;
-    // for adding to the end of the list
-    if (
-      !this.isDraggingTab.hoveredTab &&
-      this.isDraggingTab.hoveredTabElement &&
-      this.isDraggingTab.fromPanel === this.isDraggingTab.toPanel &&
-      this.panelID === this.isDraggingTab.fromPanel
-    ) {
-      this.addTabToEndOfList();
-    }
-  }
-
-  private swapTabsInSamePanel() {
-    if (!this.isDraggingTab) return;
-    // I only want to replace tabs if they are coming from the same panel.
-    if (
-      this.isDraggingTab.hoveredTab &&
-      this.isDraggingTab.fromPanel === this.isDraggingTab.toPanel &&
-      this.panelID === this.isDraggingTab.fromPanel
-    ) {
-      this.tabs = this.tabs.map((tab: PanelTab) => {
-        if (tab.id === this.isDraggingTab?.hoveredTab?.id) {
-          tab = this.isDraggingTab.tab;
-        } else if (tab.id === this.isDraggingTab?.tab.id) {
-          tab = this.isDraggingTab.hoveredTab!;
-        }
-        return tab;
-      });
-    }
+  toggleHoverableTabs() {
+    this.areTabsHoverable = !this.areTabsHoverable;
   }
 
   getManuscriptElement() {
     const manuscriptElement = document.querySelector('manuscript-element');
     return manuscriptElement;
-  }
-
-  private addTabViaPanelHover() {
-    if (!this.isDraggingTab) return;
-    if (!this.isDraggingTab.panelDrop) return;
-    // the panel that the tab came from should be deleted
-
-    // if we drag to same panel
-    if (this.isDraggingTab.fromPanel === this.panelID) {
-      // do not do ANYTHING if we have only 1 tab
-      if (this.tabs.length === 1) {
-        return;
-      }
-
-      this.tabs = this.tabs.filter(
-        (tab: PanelTab) => tab.id !== this.isDraggingTab?.tab.id
-      );
-      if (!this.tabs[0]) {
-        this.remove();
-      }
-      this.activeTab = this.tabs[0];
-
-      this.getManuscriptElement()!.updateAllPanels();
-    }
-
-    // no need to create a new tab
-    if (!(this.isDraggingTab.toPanel === this.panelID)) return;
-
-    // this simply adds the tab to the panel
-    if (this.isDraggingTab.panelDrop === PanelDrop.Center) {
-      // if tab is already in same panel, it does nothing.
-      if (this.isDraggingTab.fromPanel === this.isDraggingTab.toPanel) {
-        return;
-      }
-
-      this.addTabToEndOfList();
-      this.activeTab = this.isDraggingTab.tab;
-
-      // if tab comes from new panel, add it to the tab list at the end
-    } else if (this.isDraggingTab.panelDrop === PanelDrop.Left) {
-      sendEvent(this, SPLIT_PANEL_EVENT, {
-        panelID: this.panelID,
-        tab: this.isDraggingTab.tab,
-        side: PanelDrop.Left,
-      });
-    } else if (this.isDraggingTab.panelDrop === PanelDrop.Right) {
-      sendEvent(this, SPLIT_PANEL_EVENT, {
-        panelID: this.panelID,
-        tab: this.isDraggingTab.tab,
-        side: PanelDrop.Right,
-      });
-    }
-  }
-
-  private retrieveToPanel(e: any) {
-    if (
-      e.target.classList.contains(`${HOVER_CONATINER_CSS}`) ||
-      e.target.classList.contains(`${DRAGGED_ELEMENT_CSS}`)
-    ) {
-      return this.isDraggingTab?.toPanel;
-    }
-
-    return e.target.id;
-  }
-
-  handleDropTab(e: any) {
-    if (!this.isDraggingTab) {
-      document.querySelector(`.${DRAGGED_ELEMENT_CSS}`)?.remove();
-      return;
-    }
-
-    this.isPointerDown = false;
-    this.isDraggingTab.hoveredTabElement?.classList.remove('hovered-element');
-    // @ts-ignore
-    this.isDraggingTab = {
-      ...this.isDraggingTab,
-      toPanel: this.retrieveToPanel(e),
-    };
-
-    this.addTabsToDifferentPanels();
-    this.addTabsToEndOfTabListViaTabList();
-    this.swapTabsInSamePanel();
-    this.addTabViaPanelHover();
-
-    this.removeDraggedTabDOMElement();
-    this.requestUpdate();
-  }
-
-  private removeDraggedTabDOMElement() {
-    // remove dragging shit
-    if (this.isDraggingTab?.el) {
-      this.isDraggingTab?.el.remove();
-    }
-    this.isDraggingTab = null;
-
-    const els = document.querySelectorAll(`.${DRAGGED_ELEMENT_CSS}`);
-    els.forEach((el) => {
-      el.remove();
-    });
-
-    document.querySelector(`.${HOVER_CONATINER_CSS}`)?.remove();
-  }
-
-  setDraggedElementPosition(e: PointerEvent) {
-    if (!this.isDraggingTab) return;
-
-    const rect = this.isDraggingTab?.tabElement.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-
-    if (this.isDraggingTab.el) {
-      this.isDraggingTab.el.setAttribute(
-        'style',
-        `left: ${e.x - width / 2}px; top: ${e.y - height / 2}px;`
-      );
-    }
-  }
-
-  private createDraggingTab() {
-    if (!this.isDraggingTab) return;
-
-    if (!this.isDraggingTab.el && this.isPointerDown) {
-      const el = document.createElement('div');
-      el.textContent = this.isDraggingTab.tab.name;
-      el.classList.add('dragged-element');
-      el.classList.add('panel-tab');
-      if (this.isDraggingTab.tabElement.classList.contains('active')) {
-        el.classList.add('active');
-      }
-      this.isDraggingTab.el = el;
-      document.body.appendChild(el);
-      return el;
-    }
-
-    return null;
-  }
-
-  private handleHoverOverPanel(e: PointerEvent) {
-    if (!this.isDraggingTab) return;
-
-    const rect = this.shadowRoot
-      ?.querySelector('.tab-content-container')
-      ?.getBoundingClientRect()!;
-
-    if (
-      e.x > rect.left &&
-      e.x < rect.right &&
-      e.y > rect.top &&
-      e.y < rect.bottom
-    ) {
-      this.isDraggingTab.toPanel = this.panelID;
-      let element = document.querySelector(`.${HOVER_CONATINER_CSS}`);
-      const hoverContainer = element ? element : document.createElement('div');
-      if (!element) {
-        hoverContainer.classList.add(HOVER_CONATINER_CSS);
-      }
-
-      let width = rect.width;
-      let left = rect.left;
-      // place on left side
-      const DIVIDING_FACTOR = 5;
-      if (e.x < rect.left + rect.width / DIVIDING_FACTOR) {
-        width /= DIVIDING_FACTOR;
-        this.isDraggingTab.panelDrop = PanelDrop.Left;
-
-        // place in the middle
-      } else if (
-        e.x >
-        rect.left + (rect.width / DIVIDING_FACTOR) * (DIVIDING_FACTOR - 1)
-      ) {
-        // place on right side
-        this.isDraggingTab.panelDrop = PanelDrop.Right;
-
-        width /= DIVIDING_FACTOR;
-        left = rect.left + width * (DIVIDING_FACTOR - 1);
-      } else {
-        this.isDraggingTab.panelDrop = PanelDrop.Center;
-      }
-
-      hoverContainer.animate(
-        {
-          left: `${left}px`,
-          top: `${rect.top}px`,
-          width: `${width}px`,
-          height: `${rect.height}px`,
-          opactiy: `${0.25}`,
-        },
-        {
-          duration: 500,
-          fill: 'forwards',
-        }
-      );
-
-      document.body.appendChild(hoverContainer);
-    }
-  }
-
-  handleDragTab(e: PointerEvent) {
-    if (!this.isDraggingTab) return;
-
-    this.createDraggingTab();
-    this.handleHoverOverPanel(e);
-    this.setDraggedElementPosition(e);
   }
 
   private updateFill(): boolean {
@@ -512,7 +202,7 @@ export class PanelElement extends LitElement {
       this.updateWidth();
     }
 
-    setTimeout(this.handleOpenRightSidePanel.bind(this), 0);
+    setTimeout(this.handleToggleSidePanel.bind(this), 0);
 
     sendEvent(this, PANEL_CONSTRUCTION_EVENT, {
       panelID: this.panelID,
@@ -562,18 +252,31 @@ export class PanelElement extends LitElement {
     const tabClose = doesClickContainElement(e, { nodeName: 'SL-ICON-BUTTON' });
 
     const element = doesClickContainElement(e, { className: 'panel-tab' });
+
     if (tabClose) {
       let setNewActiveTab = false;
       this.tabs = this.tabs.filter((tab: PanelTab) => {
         if (this.activeTab?.id === tab.id) {
           setNewActiveTab = true;
         }
-        if (tab.id === element!.dataset.id) {
+        // not this element
+        if (tab.id === element?.id) {
           return false;
         }
         return true;
       });
+
       if (this.tabs.length === 0) {
+        Panel.DeletePanel(
+          new Panel(
+            this.tabs,
+            this.panelID!,
+            this.width,
+            false,
+            this.activeTab?.id
+          )
+        );
+
         sendEvent(this, CLOSE_PANEL_EVENT, this.panelID);
         // if last tab, close out the panel.
         return;
@@ -584,21 +287,27 @@ export class PanelElement extends LitElement {
         this.activeTab = this.tabs[0];
       }
 
+      this.updatePanelWrapper();
       return;
     }
 
     if (!element) return;
 
-    const tab = this.tabs.find(
-      (tab: PanelTab) => tab.id === element.dataset.id
-    );
+    const tab = this.tabs.find((tab: PanelTab) => tab.id === element.id);
 
-    console.log('clicked this tab');
     this.activeTab = tab!;
+    this.updatePanelWrapper();
+  }
+
+  private updatePanelWrapper() {
+    Panel.UpdatePanel(
+      new Panel(this.tabs, this.panelID!, this.width, false, this.activeTab?.id)
+    );
   }
 
   // & this is 'toggle'
-  handleOpenRightSidePanel() {
+  handleToggleSidePanel() {
+    console.log('open');
     setTimeout(() => {
       const panelElementWidth = document
         .querySelectorAll('side-panel-element')[1]
@@ -613,27 +322,21 @@ export class PanelElement extends LitElement {
   }
 
   handleCloseRightSidePanel(e) {
+    console.log('side panel closed');
     if ((e.detail.panelID as PanelSide) === 'right') {
       this.isRightSidePanelOpened = false;
     }
   }
 
   renderTabList() {
-    let openSidePanel;
-
-    if (this.fill && !this.isRightSidePanelOpened) {
-      openSidePanel = html` <sl-tooltip content="Open Side Panel">
-        <sl-icon-button
-          name="layout-text-sidebar"
-          @click=${() => {
-            sendEvent(this, OPEN_SIDE_PANEL_EVENT, {
-              panelID: 'right',
-              position: 'right',
-            });
-          }}
-        ></sl-icon-button>
-      </sl-tooltip>`;
-    }
+    // return html`
+    //   <panel-tab-element
+    //     .tabs=${this.tabs}
+    //     .activeTab=${this.activeTab}
+    //     .panelID=${this.panelID}
+    //   >
+    //   </panel-tab-element>
+    // `;
 
     return html`
       <div class="tab-list-container" @click=${this.handleTabClick.bind(this)}>
@@ -641,32 +344,9 @@ export class PanelElement extends LitElement {
           return html`
             <div
               class="panel-tab ${this.activeTab?.id === tab.id ? 'active' : ''}"
-              data-id=${tab.id}
-              @pointerenter=${(e: PointerEvent) => {
-                if (
-                  this.isDraggingTab &&
-                  this.isDraggingTab.tab.id !== tab.id
-                ) {
-                  e.target!.classList.add('hovered-element');
-                  this.isDraggingTab.hoveredTab = tab;
-                  this.isDraggingTab.hoveredTabElement = e.target as Element;
-                  sendEvent(this, IS_DRAGGING_TAB_EVENT, this.isDraggingTab);
-                }
-              }}
-              @pointerleave=${(e: PointerEvent) => {
-                if (
-                  this.isDraggingTab &&
-                  this.isDraggingTab.tab.id !== tab.id
-                ) {
-                  this.isDraggingTab.hoveredTab = null;
-                  this.isDraggingTab.hoveredTabElement = null;
-                  e.target!.classList.remove('hovered-element');
-                  sendEvent(this, IS_DRAGGING_TAB_EVENT, this.isDraggingTab);
-                }
-              }}
+              id=${tab.id}
               @pointerdown=${(e: PointerEvent) => {
-                // const setDraggingTab = () => {
-                this.isDraggingTab = {
+                const isDraggingTab: IsDraggingTabEvent = {
                   tab: tab,
                   tabElement: e.target! as Element,
                   fromPanel: this.panelID,
@@ -674,24 +354,16 @@ export class PanelElement extends LitElement {
                   toPanel: null,
                   hoveredTab: null,
                   hoveredTabElement: null,
+                  panel: this,
+                  panelDrop: null,
+                  isHoveringOverPanel: false,
                 };
 
-                this.isPointerDown = true;
-                sendEvent(this, IS_DRAGGING_TAB_EVENT, this.isDraggingTab);
-                // };
-                // const longPressTimeout = setTimeout(
-                //   setDraggingTab.bind(this),
-                //   100
-                // ); // Adjust the timeout duration as needed
-
-                // const clearLongPress = () => {
-                //   clearTimeout(longPressTimeout);
-                //   document.removeEventListener('pointerup', clearLongPress);
-                //   document.removeEventListener('pointerleave', clearLongPress);
-                // };
-
-                // document.addEventListener('pointerup', clearLongPress);
-                // document.addEventListener('pointerleave', clearLongPress);
+                sendEvent<IsDraggingTabEvent>(
+                  this,
+                  IS_DRAGGING_TAB_EVENT,
+                  isDraggingTab
+                );
               }}
             >
               <p>${tab.name}</p>
@@ -758,7 +430,6 @@ export class PanelElement extends LitElement {
             }}
           ></sl-icon-button>
         </sl-tooltip>
-        ${openSidePanel}
         <sl-dropdown>
           <sl-icon-button
             slot="trigger"
@@ -779,11 +450,14 @@ export class PanelElement extends LitElement {
 
   render() {
     this.updateOnRender();
-    console.log('render', this.panelID);
 
     return html`
       <div id="panel-container">
-        <div class="top-container">${this.renderTabList()}</div>
+        <div
+          class="top-container ${this.areTabsHoverable ? 'hoverable-tabs' : ''}"
+        >
+          ${this.renderTabList()}
+        </div>
         <div class="tab-content-container">${this.renderTabContent()}</div>
         ${this.renderHandle()}
       </div>

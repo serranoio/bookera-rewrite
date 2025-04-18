@@ -16,6 +16,7 @@ import {
 } from './tabMenu';
 import { sendEvent, sendGlobalEvent } from '../../../../../../lib/model/util';
 import {
+  SWITCH_TOGGLE_SIDE_PANEL_EVENT,
   TOGGLE_SIDE_PANEL_EVENT,
   ToggleSidePanelEventType,
 } from '../../../../../../lib/model/panel';
@@ -69,8 +70,6 @@ export class TabElement extends LitElement {
               ? 'active'
               : ''}"
             @click=${() => {
-              this.tab.toggleTabInDrawer();
-
               const module = ModuleRegistry.GetModuleById(this.tab.id!);
 
               if (module) {
@@ -82,7 +81,7 @@ export class TabElement extends LitElement {
 
                 sendEvent<ToggleSidePanelEventType>(
                   this,
-                  TOGGLE_SIDE_PANEL_EVENT,
+                  SWITCH_TOGGLE_SIDE_PANEL_EVENT,
                   {
                     position: this.tab.position,
                     module: module,

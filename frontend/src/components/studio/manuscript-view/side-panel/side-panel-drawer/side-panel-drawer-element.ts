@@ -14,6 +14,7 @@ import {
   CLOSE_SIDE_PANEL_EVENT,
   OPEN_SIDE_PANEL_EVENT,
   OpenSidePanelEventType,
+  SWITCH_TOGGLE_SIDE_PANEL_EVENT,
   TOGGLE_SIDE_PANEL_EVENT,
   ToggleSidePanelEventType,
 } from '../../../../../lib/model/panel';
@@ -64,6 +65,12 @@ export class SidePanelDrawerElement extends LitElement {
       TOGGLE_SIDE_PANEL_EVENT,
       this.handleToggleSidePanel.bind(this)
     );
+
+    // @ts-ignore
+    document.addEventListener(
+      SWITCH_TOGGLE_SIDE_PANEL_EVENT,
+      this.handleSwitchToggleSidePanelEvent.bind(this)
+    );
     // @ts-ignore
     document.addEventListener(
       OpenTabInSidePanel,
@@ -73,10 +80,63 @@ export class SidePanelDrawerElement extends LitElement {
     // @ts-ignore
     document.addEventListener(
       CLOSE_SIDE_PANEL_EVENT,
-      this.handleCloseSidePanel.bind(this)
+      this.handleToggleSidePanel.bind(this)
+    );
+
+    // @ts-ignore
+    document.addEventListener(
+      OPEN_SIDE_PANEL_EVENT,
+      this.handleToggleSidePanel.bind(this)
     );
 
     this.panelContainer.style.width = `${this._openDrawerWidth}rem`;
+    this.requestUpdate();
+  }
+
+  private isPanelClosed(): boolean {
+    const panelWidth = this.panelContainer.getBoundingClientRect().width;
+    // toggling side panel
+    if (panelWidth > this._closedDrawerWidth) {
+      return false;
+    }
+    return true;
+  }
+
+  private handleSwitchToggleSidePanelEvent(
+    e: CustomEvent<ToggleSidePanelEventType>
+  ) {
+    if (this.eventMatchesThisPanel(e.detail.position)) {
+      // if new module is this module
+      if (this._module?.id === e.detail.module?.id) {
+        if (this.isPanelClosed()) {
+          this._module?.tab?.toggleTabInDrawer(true);
+          this._openDrawerWidth = this._previousDrawerWidth;
+        } else {
+          this._module?.tab?.toggleTabInDrawer(false);
+          this._openDrawerWidth = this._closedDrawerWidth;
+        }
+      } else {
+        // when we switch to a new module, and there was one opened
+        if (this._module) {
+          this._module?.tab?.toggleTabInDrawer(false);
+          ModuleRegistry.UpdateModule(this._module!);
+        }
+
+        this._module = Object.assign(new Module(), e.detail.module);
+
+        if (this.isPanelClosed()) {
+          this._openDrawerWidth = this._previousDrawerWidth;
+        }
+
+        this._module.tab?.toggleTabInDrawer(true);
+      }
+
+      if (this._module) {
+        ModuleRegistry.UpdateModule(this._module);
+      }
+
+      this.panelContainer.style.width = `${this._openDrawerWidth}rem`;
+    }
     this.requestUpdate();
   }
 
@@ -93,28 +153,33 @@ export class SidePanelDrawerElement extends LitElement {
   handleToggleSidePanel(e: CustomEvent<ToggleSidePanelEventType>) {
     // get module
     if (this.eventMatchesThisPanel(e.detail.position)) {
-      this._module = Object.assign(new Module(), e.detail.module);
+      if (e.detail.module) {
+        this._module = Object.assign(new Module(), e.detail.module);
+      }
 
       // I can choose when the tab is selected...
-
       const panelWidth = this.panelContainer.getBoundingClientRect().width;
 
       // toggling side panel
-      if (panelWidth === this._closedDrawerWidth / 16) {
+      if (panelWidth === this._closedDrawerWidth) {
         this._openDrawerWidth = this._previousDrawerWidth;
       } else {
         this._openDrawerWidth = this._closedDrawerWidth;
+        this._module?.tab?.toggleTabInDrawer(false);
+        ModuleRegistry.UpdateModule(this._module!);
       }
 
       this.panelContainer.style.width = `${this._openDrawerWidth}rem`;
     }
   }
+
   handlePanelResizeEvent(e: any) {
-    console.log('panel resize');
+    console.log('panel resize', 'empty');
     // this._previousDrawerWidth = e.detail.width;
   }
 
   handleCloseSidePanel(e: CustomEvent<any>) {
+    console.log('close');
     if (this.eventMatchesThisPanel(e.detail.position)) {
       this._openDrawerWidth = this._closedDrawerWidth;
 
@@ -161,11 +226,62 @@ export class SidePanelDrawerElement extends LitElement {
     return html`${el}`;
   }
 
-  render() {
+  private displayContent() {
+    if (!this.panelContainer) return;
+
+    const width = getComputedStyle(this.panelContainer).width;
+
+    if (width.includes('0')) {
+      this.panelContainer.style.display = 'none';
+    } else {
+      this.panelContainer.style.display = 'block';
+    }
+  }
+
+  private renderPanelBasedOnPanelId() {
+    if (this.panelID === 'left') return html` ${this.renderContent()} `;
     return html`
+      <slot name="top-spot"></slot>
+      ${this.renderContent()}
+    `;
+  }
+
+  renderExpandSideBarButton() {
+    let iconName = 'chevron-double-right';
+    if (
+      this.panelContainer &&
+      getComputedStyle(this.panelContainer).width.includes('0px')
+    ) {
+      iconName = 'chevron-double-left';
+    }
+
+    return html`
+      <sl-icon-button
+        name=${iconName}
+        class="cool-expand-button ${this.panelID}"
+        @click=${() => {
+          sendEvent<ToggleSidePanelEventType>(
+            this,
+            SWITCH_TOGGLE_SIDE_PANEL_EVENT,
+            {
+              position: this.panelID,
+              module: this._module,
+            }
+          );
+        }}
+      >
+      </sl-icon-button>
+    `;
+  }
+
+  render() {
+    this.displayContent();
+
+    return html`
+      ${this.panelID === 'right' ? this.renderExpandSideBarButton() : ''}
       <div class="side-panel-drawer-element panel-container">
-        ${this.renderContent()}
-        <slot name="top-spot"></slot>
+        ${this.renderPanelBasedOnPanelId()}
+
         <panel-handle-element
           .minimumWidth=${DEFAULT_DRAWER_WIDTH * 16}
           .parentElement=${this.panelContainer}
@@ -176,18 +292,6 @@ export class SidePanelDrawerElement extends LitElement {
           .panelID=${this.panelID}
           ?right=${this.panelID === 'left' ? true : false}
         ></panel-handle-element>
-        <!-- <div
-          class="handle-box"
-          @pointerdown=${() => {
-          this.isClicked = true;
-          console.log('hello');
-        }}
-          @pointerup=${() => {
-          this.isClicked = false;
-        }}
-        >
-          <div class="handle"></div>
-        </div> -->
       </div>
     `;
   }

@@ -1,6 +1,7 @@
 import { notify } from '../../../../../lib/model/lit';
 import {
   CLOSE_PANEL_EVENT,
+  IS_DRAGGING_TAB_EVENT,
   NEW_PANEL_EVENT,
   PanelDrop,
   SPLIT_PANEL_EVENT,
@@ -9,11 +10,13 @@ import {
 import { OPEN_OUTLINE_EVENT } from '../../../../../lib/model/site';
 import { genShortID } from '../../../../../lib/model/util';
 import { ManuscriptElement } from '../../../../../pages/manuscript-element';
-import { PanelElement, PanelTab } from '../panel-element';
+import { PanelElement } from '../panel-element';
 import {
   PANEL_RESIZE_EVENT,
   PanelResizeEventDetail,
 } from '../panel-handle/panel-handle-element';
+import { Panel } from '../panel-state';
+import { PanelTab } from '../panel-tab/panel-tab';
 
 function closePanelEvent(this: ManuscriptElement, e: any) {
   this.requestUpdate();
@@ -25,6 +28,7 @@ function closePanelEvent(this: ManuscriptElement, e: any) {
       if (i === panels.length - 1) {
         panels[i - 1].updateLastElement(true);
       }
+
       panelElement.remove();
 
       i = i;
@@ -36,7 +40,7 @@ function panelResize(
   this: ManuscriptElement,
   e: CustomEvent<PanelResizeEventDetail>
 ) {
-  console.log('resize');
+  console.log('resize', 'empty');
 }
 
 export function createPanelWithNewTabs(tabs: PanelTab[]): PanelElement {
@@ -57,7 +61,8 @@ function splitPanelEvent(
   const panelElements = this.getAllPanels();
 
   const newTab = new PanelTab(e.detail.tab.name, e.detail.tab.type);
-  const newPanel = createPanelWithNewTabs([newTab]);
+  const newPanel = new Panel([newTab], genShortID(10), 300, true, newTab.id);
+  const newPanelElement = new PanelElement(newPanel);
 
   let foundElement = false;
   for (let i = 0; i < panelElements.length; i++) {
@@ -65,7 +70,7 @@ function splitPanelEvent(
 
     if (panel.id === e.detail.panelID) {
       foundElement = true;
-      const canFit = updateWidths(panel, newPanel, panelElements, i);
+      const canFit = updateWidths(panel, newPanelElement, panelElements, i);
 
       // panelDrop left is i
       let panelPosition = i;
@@ -73,7 +78,10 @@ function splitPanelEvent(
         panelPosition++;
       }
 
-      this.panelsSection?.insertBefore(newPanel, panelElements[panelPosition]);
+      this.panelsSection?.insertBefore(
+        newPanelElement,
+        panelElements[panelPosition]
+      );
       break;
     }
   }
@@ -81,13 +89,13 @@ function splitPanelEvent(
   if (!foundElement) {
     const canFit = updateWidths(
       panelElements[panelElements.length - 1],
-      newPanel,
+      newPanelElement,
       panelElements,
       panelElements.length - 1
     );
 
     if (canFit) {
-      this.panelsSection?.appendChild(newPanel);
+      this.panelsSection?.appendChild(newPanelElement);
     }
   }
 
@@ -114,9 +122,9 @@ function newPanelEvent(this: ManuscriptElement, e: any) {
     panels[panels.length - 1].updateLastElement(false);
   }
 
-  const panelElement = createPanelWithNewTabs([
-    PanelTab.CreateNewPanel(e.detail),
-  ]);
+  const newTab = PanelTab.CreateNewPanel(e.detail);
+  const newPanel = new Panel([newTab], genShortID(10), 300, true, newTab.id);
+  const panelElement = new PanelElement(newPanel);
 
   panelElement.updateLastElement(true);
 

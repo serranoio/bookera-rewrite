@@ -5,7 +5,10 @@ import base from '../../../../lib/stylesheets/base';
 import { doesClickContainElement, sendEvent } from '../../../../lib/model/util';
 import './panel-bar-element/panel-bar-element';
 import './side-panel-drawer/side-panel-drawer-element';
-import { PanelSide } from './panel-bar-element/panel-bar-element';
+import {
+  PanelBarElement,
+  PanelSide,
+} from './panel-bar-element/panel-bar-element';
 import {
   OUTLINE_TAB,
   Tab,
@@ -34,6 +37,16 @@ export class SidePanelElement extends LitElement {
   @property()
   panelBarPosition: PanelBarPosition = 'normal';
 
+  @property({ type: Boolean })
+  showSettings: boolean = false;
+
+  @query('panel-bar-element')
+  panelBarElement!: PanelBarElement;
+
+  toggleHoverableBar() {
+    this.panelBarElement.toggleHoverableBar();
+  }
+
   protected firstUpdated(
     _changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>
   ): void {}
@@ -42,6 +55,7 @@ export class SidePanelElement extends LitElement {
     return html`<panel-bar-element
       .panelID=${this.panelID}
       .panelBarPosition=${this.panelBarPosition}
+      ?showSettings=${this.showSettings}
       slot="top-spot"
     >
     </panel-bar-element>`;

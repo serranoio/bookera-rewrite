@@ -12,7 +12,7 @@ import { Tab, TabPosition } from '../../../../lib/model/tab';
 import { themeSwitcherModule } from './core-modules/theme-switcher/src/module';
 import { calendarModule } from './core-modules/calendar/src/module';
 import { extensionsModule } from './core-modules/extensions/src/module';
-import { openSidePanelModule } from './core-modules/open-side-panel/src/module';
+import { settingsModule } from './core-modules/settings/src/module';
 import { outlineModule } from './core-modules/outline/src/module';
 import { pomodoroModule } from './core-modules/pomodoro/src/module';
 import { searchModule } from './core-modules/search/src/module';
@@ -33,9 +33,9 @@ export class ModuleRegistry {
     searchModule,
     extensionsModule,
     versionsModule,
-    openSidePanelModule,
     themeSwitcherModule,
     pomodoroModule,
+    settingsModule,
     calendarModule,
     excalidrawModule,
   ];

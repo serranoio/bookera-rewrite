@@ -215,3 +215,30 @@ export const navSize: string = 85;
 export function transformVariableIntoKey(variable: any): string {
   return dashedCase(Object.keys({ variable })[0]);
 }
+
+export function swapBasedOnKey<T extends Record<string, any>, V>(
+  array: T[],
+  property: string,
+  value: V,
+  value2: V
+) {
+  let pos1 = -1;
+  let pos2 = -1;
+  for (let i = 0; i < array.length; i++) {
+    if (array[i][property] === value) {
+      pos1 = i;
+    }
+
+    if (array[i][property] === value2) {
+      pos2 = i;
+    }
+  }
+
+  let temp;
+
+  temp = array[pos1];
+  array[pos1] = array[pos2];
+  array[pos2] = temp;
+
+  return array;
+}

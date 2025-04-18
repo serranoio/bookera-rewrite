@@ -10,12 +10,16 @@ import { PanelTabTypes } from '../../panel/panel-element';
 import { OpenTabInSidePanel, PanelBarPosition } from '../side-panel-element';
 import { SendSettingsToSidebarType } from '../../modules/util';
 import { OUTLINE_TAB, Tab } from '../../../../../lib/model/tab';
-import { NEW_PANEL_EVENT } from '../../../../../lib/model/panel';
+import {
+  NEW_PANEL_EVENT,
+  OPEN_SIDE_PANEL_EVENT,
+} from '../../../../../lib/model/panel';
 import { Bag, BagManager, CreateBagManager } from '@pb33f/saddlebag';
 import './tab-element/tab-element';
 import { key } from 'localforage';
 import { Module } from '../../modules/module';
 import { ModuleRegistry } from '../../modules/registry';
+import { PanelExpand } from '../../modules/core-modules/settings/src/panel-expand';
 
 export type PanelSide = 'left' | 'right';
 
@@ -40,6 +44,19 @@ export class PanelBarElement extends LitElement {
 
   @state()
   _bag!: Bag<Module>;
+
+  @property({ type: Boolean })
+  showSettings: boolean = false;
+
+  @state()
+  panelsExpandedState: boolean = false;
+
+  @state()
+  isBarHoverable: boolean = false;
+
+  toggleHoverableBar() {
+    this.isBarHoverable = !this.isBarHoverable;
+  }
 
   constructor() {
     super();
@@ -97,12 +114,14 @@ export class PanelBarElement extends LitElement {
   }
 
   renderSettingsAndUser() {
-    if (this.panelBarPosition === 'top') {
+    if (!this.showSettings) {
       return html``;
     }
 
     return html`
       <div class="extra-configuration">
+        ${PanelExpand.RenderExpandPanelsButton()}
+
         <sl-dropdown>
           <sl-icon-button slot="trigger" name="person-circle"></sl-icon-button>
           <sl-menu>
@@ -130,7 +149,9 @@ export class PanelBarElement extends LitElement {
   render() {
     return html`
       <div
-        class="side-panel ${this.panelBarPosition}"
+        class="side-panel ${this.panelBarPosition} ${this.isBarHoverable
+          ? 'hoverable-bar'
+          : ''}"
         @click=${(e: any) => {
           const el = doesClickContainElement(e, { nodeName: 'SL-ICON-BUTTON' });
           if (!el) return;

@@ -3,10 +3,7 @@ import { LitElement, html } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import '../components/studio/manuscript-view/side-panel/side-panel-element';
 import '../components/studio/manuscript-view/panel/panel-element';
-import {
-  PanelElement,
-  PanelTab,
-} from '../components/studio/manuscript-view/panel/panel-element';
+import { PanelElement } from '../components/studio/manuscript-view/panel/panel-element';
 import { genShortID } from '../lib/model/util';
 import {
   PANEL_RESIZE_EVENT,
@@ -16,6 +13,7 @@ import { CreateBagManager } from '@pb33f/saddlebag';
 import { notify } from '../lib/model/lit';
 import {
   CLOSE_PANEL_EVENT,
+  IsDraggingTabEvent,
   NEW_PANEL_EVENT,
   PanelDrop,
   SPLIT_PANEL_EVENT,
@@ -31,16 +29,14 @@ import {
   addEventListeners,
   createPanelWithNewTabs,
 } from '../components/studio/manuscript-view/panel/panel-manager/panel-manager';
-
-interface Panel {
-  tabs: PanelTab[];
-  id: string;
-  isMinimumWidth: boolean;
-  cannotResize: boolean;
-  width: number;
-}
-
-// what if we make Panels a reference to the dom instead?
+import {
+  handleDragTab,
+  handleDropTab,
+  PanelTab,
+  setPanelTabEventListeners,
+} from '../components/studio/manuscript-view/panel/panel-tab/panel-tab';
+import { SidePanelElement } from '../components/studio/manuscript-view/side-panel/side-panel-element';
+import { Panel } from '../components/studio/manuscript-view/panel/panel-state';
 
 @customElement('manuscript-element')
 export class ManuscriptElement extends LitElement {
@@ -52,6 +48,19 @@ export class ManuscriptElement extends LitElement {
 
   @state()
   isSidePanelOpened: boolean = false;
+
+  @state()
+  handleDragTab: any = handleDragTab.bind(this);
+
+  @state()
+  handleDropTab: any = handleDropTab.bind(this);
+
+  @query('#left')
+  leftSidePanel!: SidePanelElement;
+
+  getLeftSidePanel() {
+    return this.leftSidePanel;
+  }
 
   // if I can move a panel to the right, AND the panel shrinks as well up until minimumWidth, that would be money
 
@@ -67,13 +76,18 @@ export class ManuscriptElement extends LitElement {
       } else {
         panel.updateLastElement(false);
       }
+
+      Panel.UpdatePanel(panel.formPanel());
     });
   }
+
+  draggedTab: IsDraggingTabEvent | null = null;
 
   constructor() {
     super();
 
     addEventListeners.bind(this)();
+    setPanelTabEventListeners.bind(this)();
 
     const bagManager = CreateBagManager(true);
     ModuleRegistry.InitializeModulesInBag(bagManager);
@@ -168,20 +182,32 @@ export class ManuscriptElement extends LitElement {
   }
 
   firstUpdated() {
-    this.panelsSection?.appendChild(
-      createPanelWithNewTabs([new PanelTab('Settings', 'Settings')])
-    );
-    this.panelsSection?.appendChild(
-      createPanelWithNewTabs([
-        new PanelTab('New Tab', 'New'),
-        new PanelTab('New Tab', 'New'),
-      ])
-    );
+    Panel.InitiatlizePanelsInBag().then((bag) => {
+      const values = bag?.export().values();
+      Array.from(values ? values : []).forEach((panel: Panel) => {
+        console.log(panel);
+        this.panelsSection.appendChild(new PanelElement(panel));
+      });
+    });
+
+    // this.panelsSection?.appendChild(
+    //   createPanelWithNewTabs([new PanelTab('Settings', 'Settings')])
+    // );
+    // this.panelsSection?.appendChild(
+    //   createPanelWithNewTabs([
+    //     new PanelTab('New Tab', 'New'),
+    //     new PanelTab('Settings', 'Settings'),
+    //   ])
+    // );
   }
 
   render() {
     return html`
-      <side-panel-element .panelID=${'left'}></side-panel-element>
+      <side-panel-element
+        id="left"
+        showSettings
+        .panelID=${'left'}
+      ></side-panel-element>
       <div id="panels-section"></div>
       <side-panel-element
         .panelBarPosition=${'top'}

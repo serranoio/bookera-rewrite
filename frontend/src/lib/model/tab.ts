@@ -85,8 +85,9 @@ export class Tab {
   }
 
   toggleTabInDrawer(newState?: boolean) {
-    if (newState) {
+    if (newState !== undefined) {
       this._isToggledInDrawer = newState;
+      return;
     }
 
     this._isToggledInDrawer = !this._isToggledInDrawer;
@@ -152,24 +153,3 @@ export class Tab {
     return this;
   }
 }
-
-// Converted tab instances
-export const OUTLINE_TAB = new Tab('Outline', 'files');
-export const SEARCH_TAB = new Tab('Search', 'search');
-export const EXTENSIONS_TAB = new Tab('Extensions', 'puzzle');
-export const VERSIONS_TAB = new Tab('Versions', 'git');
-export const OPEN_PANEL = new Tab(
-  'Open Panel',
-  'bookshelf',
-  '',
-  NEW_PANEL_EVENT
-);
-export const OPEN_SIDE_PANEL_TAB = new Tab(
-  'Open Side Panel',
-  'layout-text-sidebar',
-  '',
-  OPEN_SIDE_PANEL_EVENT,
-  'right'
-);
-export const POMODORO_TAB = new Tab('Pomodoro', 'stopwatch');
-export const CALENDAR_TAB = new Tab('Calendar', 'calendar-event');

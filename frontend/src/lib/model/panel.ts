@@ -1,5 +1,8 @@
 import { Module } from '../../components/studio/manuscript-view/modules/module';
-import { PanelTab } from '../../components/studio/manuscript-view/panel/panel-element';
+import {
+  PanelElement,
+  PanelTab,
+} from '../../components/studio/manuscript-view/panel/panel-element';
 import { TabPosition } from './tab';
 
 export const CLOSE_PANEL_EVENT = 'close-panel-event';
@@ -10,14 +13,20 @@ export const NEW_PANEL_EVENT = 'new-panel-event';
 export const IS_DRAGGING_TAB_EVENT = 'is-dragging-tab-event';
 export const NEW_TAB_EVENT = 'new-tab-event';
 export const TOGGLE_SIDE_PANEL_EVENT = 'toggle-side-panel-event';
+export const SWITCH_TOGGLE_SIDE_PANEL_EVENT = 'switch-toggle-side-panel-event';
 export const CLOSE_SIDE_PANEL_EVENT = 'close-side-panel-event';
 
 export interface NewPanelTabEventType {
   panelID: string;
 }
 
+export interface OpenSidePanelEventTYpe {
+  panelID: TabPosition;
+  position: TabPosition;
+}
+
 export interface ToggleSidePanelEventType {
-  module: Module;
+  module: Module | null;
   position: TabPosition;
 }
 
@@ -41,12 +50,14 @@ export enum PanelDrop {
 export interface IsDraggingTabEvent {
   tab: PanelTab;
   tabElement: Element;
-  el: Element;
-  hoveredTab: PanelTab | null;
+  el: Element | null;
+  hoveredTab: HTMLElement | null;
   hoveredTabElement: Element | null;
+  isHoveringOverPanel: boolean;
   panelDrop: PanelDrop | null;
   fromPanel: string | null;
   toPanel: string | null;
+  panel: PanelElement;
 }
 
 export type PanelApi =
@@ -58,4 +69,5 @@ export type PanelApi =
   | typeof IS_DRAGGING_TAB_EVENT
   | typeof NEW_TAB_EVENT
   | typeof TOGGLE_SIDE_PANEL_EVENT
-  | typeof CLOSE_SIDE_PANEL_EVENT;
+  | typeof CLOSE_SIDE_PANEL_EVENT
+  | typeof SWITCH_TOGGLE_SIDE_PANEL_EVENT;

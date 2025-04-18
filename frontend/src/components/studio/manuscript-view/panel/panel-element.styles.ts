@@ -2,6 +2,7 @@ import { css } from 'lit';
 export default css`
   :host {
     display: inline;
+    position: relative;
   }
 
   #panel-container {
@@ -39,10 +40,23 @@ export default css`
     overflow: hidden;
     justify-content: space-between;
     align-items: center;
+    transition: opacity 0.5s;
   }
 
   .top-container:hover {
     overflow-x: scroll;
+  }
+
+  .hoverable-tabs {
+    width: 100%;
+    opacity: 0;
+    position: absolute;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .hoverable-tabs:hover {
+    opacity: 1;
   }
 
   /* Horizontal scrollbar */
@@ -58,7 +72,25 @@ export default css`
     background: var(--slate-600);
   }
 
+  .border-highlighting::before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 2px;
+    background-color: var(--slate-600);
+    -webkit-transform: translateX(-100%);
+    -ms-transform: translateX(-100%);
+    transform: translateX(-100%);
+    left: 0px;
+  }
+
+  .border-highlighting:first-child::before {
+    width: 4px;
+    left: 3px;
+  }
+
   .panel-tab {
+    position: relative;
     flex: 1;
     background-color: var(--slate-200);
     padding: var(--spacingXXSmall) var(--spacingXSmall);

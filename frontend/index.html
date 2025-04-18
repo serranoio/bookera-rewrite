@@ -57,11 +57,12 @@
     <script type="module" src="/src/components/viewer/viewer-element"></script>
     <style>
       * {
-        transition: all .2s;
+        transition: color .2s;
+        transition: background-color .2s;
       }
 
       .orange {
-        background-color: var(--sl-color-primary-500);
+        background-color: var();
       }
 
       body {
@@ -117,9 +118,6 @@
         --spacingMedium: calc(4 * var(--spacingXSmall));
         --spacingLarge: calc(8 * var(--spacingXSmall));
         --spacingXLarge: calc(12 * var(--spacingXSmall));
-
-        --dark-mode-shadow: rgba(255, 255, 255, 0.75);
-        --light-mode-shadow: rgba(0, 0, 0, 0.75);
 
         --text-xs: 0.75rem;
         --text-sm: 0.875rem;
@@ -264,6 +262,7 @@
         user-select: none;
         pointer-events: none;
         opacity: 0.75;
+        transition: none !important;
       }
 
       .panel-tab {
@@ -291,10 +290,13 @@
 
       .hover-container {
         position: absolute;
-        background-color: var(--light-mode-shadow);
+        background-color: var(--slate-950);
         opacity: 0.75;
         transition: all 1s;
+        user-select: none;
+        pointer-events: none;
       }
+
     </style>
 
     <style>
