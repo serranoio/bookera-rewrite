@@ -449,6 +449,7 @@ export class PanelElement extends LitElement {
   }
 
   render() {
+    console.log(this.width);
     this.updateOnRender();
 
     return html`
