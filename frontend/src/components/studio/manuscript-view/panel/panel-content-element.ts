@@ -6,7 +6,7 @@ import { Module, ModuleRegistryClasses } from '../modules/module';
 import { ModuleConstructorSchema, ModuleRegistry } from '../modules/registry';
 import { Bag } from '@pb33f/saddlebag';
 import panelContentElementStyles from './panel-content-element.styles';
-import { PanelTab, PanelTabs, PanelTabType } from './panel-tab/panel-tab';
+import { PanelTabs, PanelTabType } from './panel-state';
 
 @customElement('panel-content-element')
 export class PanelContentElement extends LitElement {

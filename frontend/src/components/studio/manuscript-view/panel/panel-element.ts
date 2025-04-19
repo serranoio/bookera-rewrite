@@ -34,12 +34,7 @@ import { Module } from '../modules/module';
 import { mo } from '@twind/core';
 import { CreateBagManager, GetBagManager } from '@pb33f/saddlebag';
 import { PanelContentElement } from './panel-content-element';
-import {
-  PanelTab,
-  domifyDraggedTabOnManuscriptElement,
-  getDraggedTabOnManuscriptElement,
-} from './panel-tab/panel-tab';
-import { Panel } from './panel-state';
+import { Panel, PanelTab } from './panel-state';
 
 export const MINIMMAL_PANEL_WIDTH = 200;
 
@@ -82,6 +77,8 @@ export class PanelElement extends LitElement {
   @state()
   areTabsHoverable: boolean = false;
 
+  panelOrder: number = -1;
+
   private isDraggingTab: IsDraggingTabEvent | null = null;
 
   formPanel(): Panel {
@@ -90,8 +87,14 @@ export class PanelElement extends LitElement {
       this.panelID!,
       this.width,
       false,
-      this.activeTab?.id
+      this.activeTab?.id,
+      this.panelOrder
     );
+  }
+
+  remove() {
+    Panel.DeletePanel(this.formPanel());
+    super.remove();
   }
 
   constructor(panel?: Panel) {
@@ -104,6 +107,7 @@ export class PanelElement extends LitElement {
       this.activeTab = this.tabs.find(
         (tab: PanelTab) => tab.id === panel.activeTabId!
       )!;
+      this.panelOrder = panel.panelOrder!;
     }
 
     document.addEventListener(
@@ -128,8 +132,7 @@ export class PanelElement extends LitElement {
 
     this.tabs.push(new PanelTab('New Tab', 'New'));
     this.activeTab = this.tabs[this.tabs.length - 1];
-    this.updatePanelWrapper();
-
+    Panel.UpdatePanel(this.formPanel());
     this.requestUpdate();
   }
 
@@ -191,6 +194,8 @@ export class PanelElement extends LitElement {
       this.fill = true;
       this.showHandle = true;
     }
+
+    Panel.UpdatePanel(this.formPanel());
   }
 
   protected firstUpdated(
@@ -267,16 +272,6 @@ export class PanelElement extends LitElement {
       });
 
       if (this.tabs.length === 0) {
-        Panel.DeletePanel(
-          new Panel(
-            this.tabs,
-            this.panelID!,
-            this.width,
-            false,
-            this.activeTab?.id
-          )
-        );
-
         sendEvent(this, CLOSE_PANEL_EVENT, this.panelID);
         // if last tab, close out the panel.
         return;
@@ -287,7 +282,7 @@ export class PanelElement extends LitElement {
         this.activeTab = this.tabs[0];
       }
 
-      this.updatePanelWrapper();
+      Panel.UpdatePanel(this.formPanel());
       return;
     }
 
@@ -296,13 +291,7 @@ export class PanelElement extends LitElement {
     const tab = this.tabs.find((tab: PanelTab) => tab.id === element.id);
 
     this.activeTab = tab!;
-    this.updatePanelWrapper();
-  }
-
-  private updatePanelWrapper() {
-    Panel.UpdatePanel(
-      new Panel(this.tabs, this.panelID!, this.width, false, this.activeTab?.id)
-    );
+    Panel.UpdatePanel(this.formPanel());
   }
 
   // & this is 'toggle'
@@ -449,7 +438,6 @@ export class PanelElement extends LitElement {
   }
 
   render() {
-    console.log(this.width);
     this.updateOnRender();
 
     return html`

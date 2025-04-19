@@ -25,14 +25,10 @@ import {
   ModuleRegistryKey,
 } from '../components/studio/manuscript-view/modules/registry';
 import { Module } from '../components/studio/manuscript-view/modules/module';
-import {
-  addEventListeners,
-  createPanelWithNewTabs,
-} from '../components/studio/manuscript-view/panel/panel-manager/panel-manager';
+import { addEventListeners } from '../components/studio/manuscript-view/panel/panel-manager/panel-manager';
 import {
   handleDragTab,
   handleDropTab,
-  PanelTab,
   setPanelTabEventListeners,
 } from '../components/studio/manuscript-view/panel/panel-tab/panel-tab';
 import { SidePanelElement } from '../components/studio/manuscript-view/side-panel/side-panel-element';
@@ -183,22 +179,13 @@ export class ManuscriptElement extends LitElement {
 
   firstUpdated() {
     Panel.InitiatlizePanelsInBag().then((bag) => {
-      const values = bag?.export().values();
-      Array.from(values ? values : []).forEach((panel: Panel) => {
-        console.log(panel);
-        this.panelsSection.appendChild(new PanelElement(panel));
-      });
+      const values = bag?.export().values()!;
+      Array.from(values ? values : [])
+        .sort((a: Panel, b: Panel) => a.panelOrder! - b.panelOrder!)
+        .forEach((panel: Panel) => {
+          this.panelsSection.appendChild(new PanelElement(panel));
+        });
     });
-
-    // this.panelsSection?.appendChild(
-    //   createPanelWithNewTabs([new PanelTab('Settings', 'Settings')])
-    // );
-    // this.panelsSection?.appendChild(
-    //   createPanelWithNewTabs([
-    //     new PanelTab('New Tab', 'New'),
-    //     new PanelTab('Settings', 'Settings'),
-    //   ])
-    // );
   }
 
   render() {

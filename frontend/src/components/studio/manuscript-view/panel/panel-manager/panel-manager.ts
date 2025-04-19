@@ -15,8 +15,7 @@ import {
   PANEL_RESIZE_EVENT,
   PanelResizeEventDetail,
 } from '../panel-handle/panel-handle-element';
-import { Panel } from '../panel-state';
-import { PanelTab } from '../panel-tab/panel-tab';
+import { Panel, PanelTab } from '../panel-state';
 
 function closePanelEvent(this: ManuscriptElement, e: any) {
   this.requestUpdate();
@@ -43,16 +42,6 @@ function panelResize(
   console.log('resize', 'empty');
 }
 
-export function createPanelWithNewTabs(tabs: PanelTab[]): PanelElement {
-  const panelElement = new PanelElement();
-  panelElement.id = genShortID(6);
-  panelElement.panelID = panelElement.id;
-  panelElement.tabs = tabs;
-  panelElement.activeTab = tabs[0];
-  panelElement.updateLastElement(false);
-
-  return panelElement;
-}
 // upon panel split, create new panel after old panel
 function splitPanelEvent(
   this: ManuscriptElement,
@@ -61,14 +50,23 @@ function splitPanelEvent(
   const panelElements = this.getAllPanels();
 
   const newTab = new PanelTab(e.detail.tab.name, e.detail.tab.type);
-  const newPanel = new Panel([newTab], genShortID(10), 300, true, newTab.id);
+  const newPanel = new Panel(
+    [newTab],
+    genShortID(10),
+    300,
+    true,
+    newTab.id,
+    -1
+  );
   const newPanelElement = new PanelElement(newPanel);
+
+  Panel.AddPanel(newPanelElement.formPanel());
 
   let foundElement = false;
   for (let i = 0; i < panelElements.length; i++) {
     const panel = panelElements[i];
 
-    if (panel.id === e.detail.panelID) {
+    if (panel.panelID === e.detail.panelID) {
       foundElement = true;
       const canFit = updateWidths(panel, newPanelElement, panelElements, i);
 
@@ -82,6 +80,7 @@ function splitPanelEvent(
         newPanelElement,
         panelElements[panelPosition]
       );
+
       break;
     }
   }
@@ -99,21 +98,11 @@ function splitPanelEvent(
     }
   }
 
+  Panel.UpdatePanelOrderOnPanelCreation(Array.from(this.getAllPanels()));
   this.updateAllPanels();
 
   // create a new panel
   this.requestUpdate();
-}
-
-function openSidePanelEvent(this: ManuscriptElement) {
-  this.isSidePanelOpened = !this.isSidePanelOpened;
-
-  const panels = this.getAllPanels();
-  if (this.isSidePanelOpened) {
-    // panels[panels.length - 1].updateSidePanelOpened(true);
-  } else {
-    // panels[panels.length - 1].updateSidePanelOpened(false);
-  }
 }
 
 function newPanelEvent(this: ManuscriptElement, e: any) {
@@ -128,7 +117,10 @@ function newPanelEvent(this: ManuscriptElement, e: any) {
 
   panelElement.updateLastElement(true);
 
+  Panel.AddPanel(panelElement.formPanel());
+
   this.panelsSection!.appendChild(panelElement);
+  Panel.UpdatePanelOrderOnPanelCreation(Array.from(this.getAllPanels()));
 }
 
 function changePanelsToPercentage(this: ManuscriptElement) {
@@ -279,9 +271,6 @@ export function addEventListeners(this: ManuscriptElement) {
 
   // @ts-ignore
   document.addEventListener(NEW_PANEL_EVENT, newPanelEvent.bind(this));
-
-  // @ts-ignore
-  document.addEventListener(OPEN_OUTLINE_EVENT, openSidePanelEvent.bind(this));
 
   // @ts-ignore
   document.addEventListener('resize', changePanelsToPercentage.bind(this));

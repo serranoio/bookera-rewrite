@@ -15,13 +15,7 @@ import {
 import { ManuscriptElement } from '../../../../../pages/manuscript-element';
 import { PanelElement } from '../panel-element';
 import { add } from 'isomorphic-git';
-
-export const PanelTabs = {
-  Settings: 'Settings',
-  New: 'New',
-  Module: 'Module',
-  Undefined: 'Undefined',
-} as const;
+import { Panel, PanelTab } from '../panel-state';
 
 export const HOVER_CONATINER_CSS = 'hover-container';
 export const DRAGGED_ELEMENT_CSS = 'dragged-element';
@@ -30,38 +24,6 @@ export const BORDER_HIGHLIGHTING = 'border-highlighting';
 
 export const ADD_MORE_BOX_CSS = 'add-more-box';
 export const PANEL_TAB_CSS = 'panel-tab';
-
-export type PanelTabType = keyof typeof PanelTabs;
-
-export class PanelTab {
-  name?: string;
-  type?: PanelTabType;
-  id?: string;
-
-  constructor(name?: string, type?: PanelTabType, id?: string) {
-    this.name = name;
-    this.type = type;
-    if (id) {
-      this.id = id;
-    } else {
-      this.id = genShortID(6);
-    }
-  }
-
-  static CreateNewPanel(panelTab: PanelTabType) {
-    if (Object.keys(PanelTabs).includes(panelTab)) {
-      return new PanelTab(panelTab, panelTab);
-    }
-
-    return new PanelTab('undefined', 'Undefined');
-  }
-
-  renderPanelContents(): TemplateResult {
-    const panelContent = new PanelContentElement(this.type as PanelTabType);
-
-    return html`${panelContent}`;
-  }
-}
 
 export function setPanelTabEventListeners(this: ManuscriptElement) {
   // @ts-ignore
@@ -284,6 +246,7 @@ function removeThisTab(this: ManuscriptElement) {
   );
   if (this.draggedTab.panel.tabs.length > 0) {
     this.draggedTab.panel.activeTab = this.draggedTab.panel.tabs[0];
+    Panel.UpdatePanel(this.draggedTab.panel.formPanel());
   } else {
     sendEvent(this, CLOSE_PANEL_EVENT, this.draggedTab.panel.panelID);
   }
@@ -321,11 +284,13 @@ function addTabsToDifferentPanels(
       }
 
       panel.activeTab = this.draggedTab.tab;
+
       this.requestUpdate();
     }
 
     removeThisTab.bind(this)();
     this.draggedTab.panel.requestUpdate();
+    Panel.UpdatePanel(this.draggedTab.panel.formPanel());
     return true;
   }
 
@@ -336,7 +301,6 @@ function addTabsToDifferentPanels(
 function addTabToEndOfList(this: ManuscriptElement, panel: PanelElement) {
   if (!this.draggedTab) return;
 
-  // if we have a tab at the beginnig, we remove it. it goes to the end
   if (this.draggedTab.fromPanel === this.draggedTab.toPanel) {
     panel.tabs = panel.tabs.filter(
       (tab: PanelTab) => tab.id !== this.draggedTab?.tab.id
@@ -352,6 +316,7 @@ function addTabToEndOfList(this: ManuscriptElement, panel: PanelElement) {
   panel.tabs.push(this.draggedTab.tab);
 
   panel.activeTab = this.draggedTab.tab;
+  Panel.UpdatePanel(panel.formPanel());
 }
 
 function removeDraggedTab(this: ManuscriptElement, panel: PanelElement) {
@@ -506,6 +471,11 @@ export function handleDropTab(this: ManuscriptElement, e: PointerEvent) {
   }
   if (!added) {
     swapTabsInSamePanel.bind(this)(panelTab.panel);
+  }
+
+  Panel.UpdatePanel(panelTab.panel.formPanel());
+  if (this.draggedTab) {
+    Panel.UpdatePanel(this.draggedTab?.panel.formPanel());
   }
 
   removeDraggedTabDOMElement.bind(this)();
